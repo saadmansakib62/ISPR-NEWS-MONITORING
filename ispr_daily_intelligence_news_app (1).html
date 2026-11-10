@@ -1,0 +1,2296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#020617">
+    <title>ISPR | Inter Services Public Relations - 24/7 Live News Harvester & Intelligence Kit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+Bengali:wght@600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans Bengali', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Continuous 24/7 Ultra-Slow Right-to-Left Scrolling News Ticker */
+        @keyframes tickerMarquee {
+            0% { transform: translate3d(0%, 0, 0); }
+            100% { transform: translate3d(-50%, 0, 0); }
+        }
+        .ticker-viewport {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            mask-image: linear-gradient(to right, transparent 0%, black 3%, black 97%, transparent 100%);
+        }
+        .ticker-track {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+            will-change: transform;
+            animation: tickerMarquee var(--ticker-duration, 1400s) linear infinite;
+        }
+        .ticker-viewport:hover .ticker-track {
+            animation-play-state: paused !important;
+        }
+
+        @media print {
+            @page { size: A4; margin: 14mm; }
+            body { background: #ffffff !important; color: #000000 !important; height: auto !important; overflow: visible !important; }
+            .no-print { display: none !important; }
+            #right-wa-sidebar {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                border: none !important;
+            }
+            #wa-raw-panel { display: none !important; }
+            #wa-a4-panel { display: block !important; background: #fff !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased h-[100dvh] flex flex-col overflow-hidden select-none sm:select-auto">
+
+    <!-- Toast Notifications -->
+    <div id="toast-box" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none no-print"></div>
+
+    <!-- ========================================================================= -->
+    <!-- TOP SLIDE-DOWN KEYWORD SEARCH RESULTS SIDEBAR (NO BOLD ASTERISKS)         -->
+    <!-- ========================================================================= -->
+    <aside id="top-search-sidebar" class="hidden fixed top-14 left-0 right-0 z-40 bg-slate-900/98 backdrop-blur-md border-b-2 border-emerald-500 shadow-2xl max-h-[75vh] flex flex-col no-print transition-all">
+        <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 text-[10px] font-mono font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded">
+                    🔎 Top Search Drawer
+                </span>
+                <h3 id="top-search-title" class="text-xs font-bold text-white">
+                    Live Search Results Across Electronic & Print Media
+                </h3>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="top-search-status" class="text-[11px] font-mono text-slate-400"></span>
+                <button onclick="closeTopSearchSidebar()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white text-xs font-bold transition">
+                    ✕ Close Search Drawer
+                </button>
+            </div>
+        </div>
+        <div id="top-search-results-list" class="p-3 overflow-y-auto space-y-2 flex-1 divide-y divide-slate-800/60"></div>
+    </aside>
+
+    <!-- ========================================================================= -->
+    <!-- NOTIFICATION HISTORY BELL DRAWER                                          -->
+    <!-- ========================================================================= -->
+    <div id="notif-history-drawer" class="hidden fixed top-24 right-4 z-50 w-full max-w-lg bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden no-print">
+        <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+            <span class="text-xs font-extrabold text-emerald-400">🔔 Live Notification Log (24/7 Stream)</span>
+            <button onclick="toggleNotifDrawer()" class="text-xs text-slate-400 hover:text-white font-bold">✕ Close</button>
+        </div>
+        <div id="notif-history-list" class="max-h-80 overflow-y-auto divide-y divide-slate-800 p-2 space-y-1.5 text-xs"></div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- ROW 1: TOP COMMAND HEADER WITH OFFICIAL ISPR LOGO                         -->
+    <!-- ========================================================================= -->
+    <header class="bg-slate-900 border-b border-slate-800 px-3 py-1.5 flex flex-wrap items-center justify-between gap-2 shrink-0 no-print">
+        <!-- Left: Sidebar Toggle & Official ISPR Logo Badge -->
+        <div class="flex items-center gap-2.5">
+            <button onclick="toggleLeftSidebar()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition" title="Toggle Left Sidebar">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+
+            <!-- Attached ISPR Emblem & Tri-Service Logo (SVG recreation of the attached ISPR logo) -->
+            <div class="flex items-center gap-2.5">
+                <div class="bg-white rounded-md px-2 py-0.5 shadow-sm border border-slate-300 flex items-center gap-2 shrink-0">
+                    <!-- Tri-Service Stripes + Govt of Bangladesh Emblem + ISPR Typography -->
+                    <svg class="h-9 w-auto" viewBox="0 0 335 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ISPR Inter Services Public Relations Logo">
+                        <!-- Tri-Service Vertical Stripes (Light Blue, Red, Dark Navy) -->
+                        <rect x="6" y="2" width="24" height="116" fill="#0096D6"/>
+                        <rect x="33" y="2" width="24" height="116" fill="#B5121B"/>
+                        <rect x="60" y="2" width="24" height="116" fill="#0B3B60"/>
+
+                        <!-- Outer White & Green Ring of Bangladesh Govt Seal -->
+                        <circle cx="45" cy="60" r="39" fill="#FFFFFF" stroke="#006A4E" stroke-width="2.5"/>
+                        <circle cx="45" cy="60" r="27" fill="#DA291C"/>
+
+                        <!-- Golden Map of Bangladesh inside Red Circle -->
+                        <path d="M38 45 L44 43 L49 46 L52 52 L56 55 L54 62 L57 68 L53 74 L48 70 L43 73 L38 69 L36 62 L33 56 L37 51 Z" fill="#FFC72C" stroke="#B48300" stroke-width="0.8"/>
+
+                        <!-- 4 Red Stars (2 on each side) -->
+                        <circle cx="14" cy="64" r="2.2" fill="#DA291C"/>
+                        <circle cx="17" cy="74" r="2.2" fill="#DA291C"/>
+                        <circle cx="76" cy="64" r="2.2" fill="#DA291C"/>
+                        <circle cx="73" cy="74" r="2.2" fill="#DA291C"/>
+
+                        <!-- Top & Bottom Bangla Arc Text Representation -->
+                        <path id="topArc" d="M 15,60 A 30,30 0 1,1 75,60" fill="none"/>
+                        <text font-size="7.5" font-weight="700" fill="#006A4E" text-anchor="middle">
+                            <textPath href="#topArc" startOffset="50%">গণপ্রজাতন্ত্রী বাংলাদেশ</textPath>
+                        </text>
+                        <text x="45" y="95" font-size="8.5" font-weight="700" fill="#006A4E" text-anchor="middle">সরকার</text>
+
+                        <!-- Right Side: ISPR Bold Black Title -->
+                        <text x="96" y="54" font-family="Inter, Arial, sans-serif" font-size="60" font-weight="900" letter-spacing="2" fill="#000000">ISPR</text>
+
+                        <!-- INTER SERVICES PUBLIC RELATIONS -->
+                        <text x="97" y="73" font-family="Inter, Arial, sans-serif" font-size="15.5" font-weight="800" letter-spacing="2.8" fill="#111827">INTER SERVICES</text>
+                        <text x="97" y="91" font-family="Inter, Arial, sans-serif" font-size="15.5" font-weight="800" letter-spacing="1.7" fill="#111827">PUBLIC RELATIONS</text>
+
+                        <!-- Red Divider Line -->
+                        <line x1="97" y1="98" x2="328" y2="98" stroke="#E11D48" stroke-width="3"/>
+
+                        <!-- Bangla Subtitle: আন্তঃবাহিনী জনসংযোগ পরিদপ্তর -->
+                        <text x="97" y="114" font-family="'Noto Sans Bengali', sans-serif" font-size="14.5" font-weight="700" fill="#111827">আন্তঃবাহিনী জনসংযোগ পরিদপ্তর</text>
+                    </svg>
+                </div>
+
+                <div class="hidden xl:block">
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-extrabold text-xs tracking-tight text-white">ISPR <span class="text-emerald-400">MEDIA WING</span></span>
+                        <span id="live-clock-badge" class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/30">⚡ LIVE</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400">Inter Services Public Relations • 24/7 News Harvester</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Any-Keyword Global Search Bar (Opens Top Slide-Down Search Sidebar) -->
+        <div class="flex-1 max-w-xl flex items-center gap-1.5">
+            <div class="relative flex-1 flex items-center">
+                <input id="global-keyword-input" type="text" placeholder="Search any keyword across all news sources (e.g., Bangladesh, BAPEX, Hormuz, Manipur, NATO)..."
+                    onkeydown="if(event.key==='Enter') executeGlobalKeywordSearch()"
+                    class="w-full pl-3 pr-20 py-1.5 text-xs bg-slate-950 border border-slate-700 focus:border-emerald-500 rounded-lg text-white placeholder-slate-400 focus:outline-none" />
+                <button onclick="executeGlobalKeywordSearch()" class="absolute right-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-[11px] rounded-md transition">
+                    🔎 Search
+                </button>
+            </div>
+            <button onclick="toggleTopSearchSidebar()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-bold rounded-lg border border-slate-700 shrink-0" title="Open/Close Top Search Results Drawer">
+                📂 Results
+            </button>
+        </div>
+
+        <!-- Right: Save, Sync Live News & SINGLE WhatsApp Report Button -->
+        <div class="flex items-center gap-1.5 shrink-0">
+            <button id="btn-save-all" onclick="saveAllChangesManual(true)" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-[11px] rounded-lg shadow-xs transition flex items-center gap-1">
+                <span>💾 Save</span>
+                <span id="dirty-indicator" class="hidden text-amber-300 font-mono">*</span>
+            </button>
+            <button onclick="syncUnlimitedLiveFeeds(true)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-[11px] rounded-lg border border-emerald-500/30 transition flex items-center gap-1">
+                <span>🔄 Sync Live News</span>
+            </button>
+            <!-- SINGLE WHATSAPP REPORT BUTTON -->
+            <button id="btn-toggle-wa-sidebar" onclick="toggleRightWaSidebar()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-[11px] rounded-lg shadow-sm transition flex items-center gap-1">
+                <span>💬 WhatsApp Report</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ========================================================================= -->
+    <!-- ROW 2: CONTINUOUS 24/7 ULTRA-SLOW SCROLLING NEWS BAR (NO +ADD BUTTON)     -->
+    <!-- ========================================================================= -->
+    <div class="bg-slate-950 border-b border-slate-800 px-3 py-1 flex items-center justify-between gap-2 shrink-0 no-print">
+        <div class="flex items-center gap-1.5 shrink-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="px-1.5 py-0.5 text-[9px] font-mono font-extrabold uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded">
+                24/7 LIVE STREAM
+            </span>
+        </div>
+
+        <!-- Continuous Right-to-Left Scrolling Viewport (Pauses on Hover) -->
+        <div id="topbar-ticker-viewport" class="ticker-viewport flex-1 text-xs">
+            <div id="topbar-popup-content" class="ticker-track" style="--ticker-duration: 1400s;">
+                <!-- Populated dynamically with unmodified live news + source + actual published date -->
+            </div>
+        </div>
+
+        <!-- Right Side of Ticker: Direct Source + Actual Publish Date Link, Speed Control & Bell -->
+        <div class="flex items-center gap-1.5 shrink-0">
+            <a id="topbar-popup-link" href="https://news.google.com" target="_blank" rel="noopener noreferrer"
+                class="hidden md:inline-flex px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 text-[10px] font-mono font-bold items-center gap-1">
+                🔗 Source ↗
+            </a>
+            <select id="ticker-speed-select" onchange="changeTickerSpeed(this.value)" class="bg-slate-900 text-slate-300 border border-slate-700 rounded px-1.5 py-0.5 text-[10px] font-mono focus:outline-none" title="Scrolling Speed">
+                <option value="2000s">Super Slow (Crawl)</option>
+                <option value="1400s" selected>Ultra Slow (Default)</option>
+                <option value="950s">Very Slow</option>
+                <option value="650s">Slow</option>
+                <option value="paused">⏸ Pause</option>
+            </select>
+            <button onclick="toggleNotifDrawer()" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 text-[10px] font-mono font-bold flex items-center gap-1" title="Notification Log">
+                <span>🔔</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- ROW 3: DATE NAVIGATION, DUPLICATE PURGE & TOTAL UPLOADED COUNTER          -->
+    <!-- ========================================================================= -->
+    <div class="bg-slate-900/90 border-b border-slate-800 px-3 py-1 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0 no-print">
+        <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="text-[10px] font-mono uppercase text-emerald-400 font-bold">📅 Date:</span>
+            <button onclick="stepDate(-1)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold">◀</button>
+            <input id="inp-report-date" type="date" onchange="onDateChange(this.value)" class="bg-slate-950 text-white border border-slate-700 rounded px-2 py-0.5 text-xs font-bold focus:outline-none focus:border-emerald-500" />
+            <button onclick="stepDate(1)" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold">▶</button>
+            <button onclick="setTodayDate()" class="px-2 py-0.5 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded text-[10px] font-bold">Today</button>
+            <button onclick="setYesterdayDate()" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] font-semibold">Yesterday</button>
+        </div>
+
+        <div class="flex items-center gap-2 flex-wrap">
+            <!-- Red Duplicate Alert Button (Hidden if 0 duplicates) -->
+            <button id="btn-purge-duplicates" onclick="purgeDuplicateNews()" class="hidden px-2.5 py-0.5 bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-[10px] rounded animate-pulse">
+                🚨 Repeated News Found — Click to Purge Duplicates
+            </button>
+
+            <div class="flex items-center gap-1.5 bg-slate-950 px-2 py-0.5 rounded border border-slate-800 text-[10px]">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="font-mono text-slate-300">Auto-Upload:</span>
+                <select id="stream-interval-select" onchange="changeStreamInterval(this.value)" class="bg-transparent text-emerald-300 font-mono font-bold focus:outline-none cursor-pointer">
+                    <option value="1000" selected>Every 1s (Sec-by-Sec)</option>
+                    <option value="5000">Every 5s</option>
+                    <option value="60000">Every 1m</option>
+                    <option value="3600000">Hourly</option>
+                </select>
+                <span id="live-feed-counter-pill" class="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-300 rounded font-mono font-bold">Total Uploaded: 0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- MAIN 3-PANE COMMAND WORKSPACE                                             -->
+    <!-- ========================================================================= -->
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <!-- 1. LEFT COMMAND SIDEBAR -->
+        <aside id="left-sidebar" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 overflow-y-auto no-print transition-all">
+            <div class="p-3 space-y-4">
+                <!-- Workspace Switcher (Without extra numbering clutter) -->
+                <div class="space-y-1">
+                    <div class="text-[10px] font-mono uppercase text-slate-400 px-1">ISPR Workspace</div>
+                    <button onclick="switchMainTab('builder')" id="nav-tab-builder" class="w-full px-3 py-2 rounded-lg text-left text-xs font-bold flex items-center justify-between bg-emerald-600 text-slate-950">
+                        <span>Report Builder</span>
+                    </button>
+                    <button onclick="switchMainTab('live')" id="nav-tab-live" class="w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center justify-between text-slate-300 hover:bg-slate-800">
+                        <span>Live News Feeds</span>
+                    </button>
+                    <button onclick="switchMainTab('kit')" id="nav-tab-kit" class="w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center justify-between text-slate-300 hover:bg-slate-800">
+                        <span>Master Kit & Sectors</span>
+                    </button>
+                </div>
+
+                <!-- Dynamic Sector Quick-Jump Navigator -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between px-1">
+                        <span class="text-[10px] font-mono uppercase text-slate-400">Report Sectors</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="promptAddNewSector()" class="text-[10px] text-emerald-400 hover:underline font-extrabold">+ Add Sector</button>
+                            <button onclick="switchMainTab('kit')" class="text-[10px] text-slate-400 hover:text-white font-semibold">⚙️ Kit</button>
+                        </div>
+                    </div>
+                    <div id="sidebar-sectors-nav" class="space-y-1"></div>
+                </div>
+
+                <!-- Instant Keyword Search Chips -->
+                <div class="space-y-1.5">
+                    <div class="text-[10px] font-mono uppercase text-slate-400 px-1">Instant Keyword Search</div>
+                    <div class="flex flex-wrap gap-1">
+                        <button onclick="quickKeywordChip('Bangladesh Security')" class="px-2 py-1 text-[10px] font-semibold bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 rounded border border-slate-700 transition">BD Security</button>
+                        <button onclick="quickKeywordChip('Bangladesh Armed Forces ISPR')" class="px-2 py-1 text-[10px] font-semibold bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 rounded border border-slate-700 transition">ISPR / Defense</button>
+                        <button onclick="quickKeywordChip('BAPEX Gas Energy')" class="px-2 py-1 text-[10px] font-semibold bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 rounded border border-slate-700 transition">BAPEX Gas</button>
+                        <button onclick="quickKeywordChip('Manipur BSF India')" class="px-2 py-1 text-[10px] font-semibold bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 rounded border border-slate-700 transition">Manipur / BSF</button>
+                        <button onclick="quickKeywordChip('Strait of Hormuz Iran')" class="px-2 py-1 text-[10px] font-semibold bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 rounded border border-slate-700 transition">Hormuz / Iran</button>
+                        <button onclick="quickKeywordChip('Myanmar Rakhine Arakan')" class="px-2 py-1 text-[10px] font-semibold bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 rounded border border-slate-700 transition">Rakhine</button>
+                        <button onclick="quickKeywordChip('Russia Ukraine NATO')" class="px-2 py-1 text-[10px] font-semibold bg-slate-800 hover:bg-emerald-600 hover:text-slate-950 rounded border border-slate-700 transition">NATO / Ukraine</button>
+                    </div>
+                </div>
+
+                <!-- Formatting Options -->
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+                    <div class="text-[10px] font-mono uppercase text-slate-400">Report Rules</div>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-slate-300">Auto A–Z Index (a, b, c)</span>
+                        <input id="chk-autosort" type="checkbox" checked onchange="toggleAutoSortAZ(this.checked)" class=" accent-emerald-500" />
+                    </label>
+                    <label class="flex items-center justify-between cursor-pointer">
+                        <span class="text-slate-300">Include 🔗 Source in WA</span>
+                        <input id="chk-wa-links" type="checkbox" onchange="syncOutput()" class="accent-emerald-500" />
+                    </label>
+                </div>
+            </div>
+
+            <div class="p-3 border-t border-slate-800 bg-slate-950 text-[11px] flex items-center justify-between font-mono text-slate-400">
+                <span>ISPR LIVE</span>
+                <span id="sidebar-clock" class="text-emerald-400 font-bold">--:--:--</span>
+            </div>
+        </aside>
+
+        <!-- 2. CENTER MAIN WORKSPACE -->
+        <main class="flex-1 flex flex-col overflow-hidden bg-slate-950">
+
+            <!-- ===================================================================== -->
+            <!-- VIEW 1: 4-SECTOR REPORT BUILDER (NO AUTO-INCLUSION UNTIL ADDED)       -->
+            <!-- ===================================================================== -->
+            <div id="view-builder" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
+
+                <!-- Top Subject & Optional Salutation/Sign-Off Card -->
+                <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase bg-emerald-500/20 text-emerald-300 rounded border border-emerald-500/30">
+                                ISPR Daily Briefing Builder
+                            </span>
+                            <span class="text-[11px] text-slate-400">
+                                Add or delete any main sector heading. News is organized sector-wise & repeated news turns <strong class="text-rose-400">RED</strong>.
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button onclick="promptAddNewSector()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 rounded-lg text-[11px] font-extrabold shadow-xs">
+                                ➕ Add New Main Sector Heading
+                            </button>
+                            <button onclick="enrichAllReportItems()" class="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded-lg text-[11px] font-bold">
+                                🔍 Expand All Details
+                            </button>
+                            <button onclick="clearAllReportSections()" class="px-2.5 py-1 bg-slate-800 hover:bg-rose-950 text-slate-300 hover:text-rose-300 border border-slate-700 rounded-lg text-[11px] font-semibold">
+                                🧹 Clear Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5">
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Optional Salutation</label>
+                            <input id="inp-salutation" type="text" placeholder="(Blank by default)" oninput="markDirty(); syncOutput();"
+                                class="w-full px-2.5 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white focus:border-emerald-500 focus:outline-none" />
+                        </div>
+                        <div class="md:col-span-6">
+                            <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Report Subject Line</label>
+                            <input id="inp-subject" type="text" oninput="markDirty(); syncOutput();"
+                                class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-950 border border-slate-800 rounded-lg text-emerald-300 focus:border-emerald-500 focus:outline-none" />
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Optional Closing Sign-Off</label>
+                            <input id="inp-signoff" type="text" placeholder="(Blank by default)" oninput="markDirty(); syncOutput();"
+                                class="w-full px-2.5 py-1.5 text-xs bg-slate-950 border border-slate-800 rounded-lg text-white focus:border-emerald-500 focus:outline-none" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Customizable Sectors Container -->
+                <div id="builder-sections-container" class="space-y-4"></div>
+            </div>
+
+            <!-- ===================================================================== -->
+            <!-- VIEW 2: UNLIMITED LIVE ELECTRONIC & PRINT MEDIA FEEDS                 -->
+            <!-- ===================================================================== -->
+            <div id="view-live" class="hidden flex-1 flex flex-col overflow-hidden bg-slate-950">
+                <!-- Filter & Search Bar inside Live Feeds -->
+                <div class="p-3 bg-slate-900 border-b border-slate-800 space-y-2.5 shrink-0">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <!-- Sector Filter Buttons (Clean, no extra numbers) -->
+                        <div id="live-sector-filter-bar" class="flex items-center gap-1 flex-wrap"></div>
+
+                        <!-- Time Window Filter (Real-Time Top vs Archive) -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-mono text-slate-400">Window:</span>
+                            <select id="live-time-window" onchange="changeLiveTimeWindow(this.value)" class="px-2 py-1 text-xs font-bold bg-slate-950 text-emerald-300 border border-slate-700 rounded-lg focus:outline-none">
+                                <option value="all" selected>All Uploaded (⚡ Real-Time Top + Archive)</option>
+                                <option value="realtime">⚡ Real-Time Incoming Only</option>
+                                <option value="last6h">Last 6 Hours</option>
+                                <option value="prev24h">Previous 24 Hours Archive</option>
+                            </select>
+                            <button onclick="syncUnlimitedLiveFeeds(true)" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-lg">
+                                🔄 Fetch More Live News
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Instant Filter Within Unlimited Feeds + Single Total Uploaded Counter -->
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <input id="live-local-filter" type="text" oninput="renderLiveFeeds(true)" placeholder="Filter instantaneously inside uploaded live news (by headline, sector, channel, or published date)..."
+                            class="flex-1 min-w-[240px] px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-white focus:border-emerald-500 focus:outline-none" />
+                        <div class="flex items-center gap-2">
+                            <label class="flex items-center gap-1.5 text-[11px] text-slate-300 bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800 cursor-pointer">
+                                <input id="chk-group-by-sector" type="checkbox" checked onchange="renderLiveFeeds(false)" class="accent-emerald-500" />
+                                <span class="font-bold text-emerald-300">Group Sector-Wise</span>
+                            </label>
+                            <span id="live-feed-count-label" class="font-mono text-[11px] text-emerald-400 font-bold">Total Uploaded: 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unlimited Live Feed Cards List (Sector-Wise) -->
+                <div id="live-feed-list" class="flex-1 overflow-y-auto p-3 space-y-3"></div>
+            </div>
+
+            <!-- ===================================================================== -->
+            <!-- VIEW 3: MASTER KIT & DYNAMIC MULTI-SECTOR SYNCHRONIZED SETUP          -->
+            <!-- ===================================================================== -->
+            <div id="view-kit" class="hidden flex-1 overflow-y-auto p-4 space-y-4">
+                <div class="p-4 bg-slate-900 rounded-xl border border-emerald-500/40 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                        <div>
+                            <h2 class="text-sm font-extrabold text-white">⚙️ ISPR Master Kit & Dynamic Sector Configuration</h2>
+                            <p class="text-xs text-slate-400">Add new main headings, delete unwanted headings, or edit search keywords. Live feeds and reports automatically organize sector-wise.</p>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <button onclick="addNewSectorFromKit()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs rounded-lg shadow-sm">
+                                ➕ Add New Sector Heading
+                            </button>
+                            <button onclick="applyKitChangesToAllSectors()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-lg shadow-sm">
+                                ✅ Apply & Sync All Sectors
+                            </button>
+                            <button onclick="resetKitToDefaults()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700">
+                                Reset Default Sectors
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Add New Main Sector Quick Bar inside Kit -->
+                    <div class="p-3 bg-slate-950 rounded-xl border border-emerald-500/30 grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                        <div class="md:col-span-5">
+                            <label class="block text-[10px] font-mono uppercase text-emerald-400 mb-1">New Main Sector Heading Title</label>
+                            <input id="new-sector-title-inp" type="text" placeholder="e.g., Cyber Warfare, Maritime & Defense Technology"
+                                class="w-full px-3 py-1.5 text-xs font-bold bg-slate-900 border border-slate-700 rounded-lg text-white focus:border-emerald-500 focus:outline-none" />
+                        </div>
+                        <div class="md:col-span-5">
+                            <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Live News Search Keywords (Optional — Auto-generated from title if blank)</label>
+                            <input id="new-sector-query-inp" type="text" placeholder="e.g., Cyberattack OR Defense Drone OR Satellite OR Naval Warship"
+                                class="w-full px-3 py-1.5 text-xs font-mono bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:border-emerald-500 focus:outline-none" />
+                        </div>
+                        <div class="md:col-span-2">
+                            <button onclick="createNewSectorFromInputs()" class="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-lg">
+                                + Create Sector
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Global Subject Prefix & Detail Depth -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Global Subject Prefix</label>
+                            <input id="kit-subject-prefix" type="text" value="Today's Important International News-"
+                                class="w-full px-3 py-1.5 text-xs font-bold bg-slate-950 border border-slate-700 rounded-lg text-white" />
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Global Detail Mode for All Sectors</label>
+                            <select id="kit-detail-mode" class="w-full px-3 py-1.5 text-xs font-bold bg-slate-950 border border-slate-700 rounded-lg text-emerald-300">
+                                <option value="detailed" selected>Full Main News + Analytical Details</option>
+                                <option value="concise">Concise 1-Sentence Brief</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Apply Sector Context Tag to All Items</label>
+                            <button onclick="realignAllSectorsDetailsNow()" class="w-full py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-lg">
+                                🔄 Re-Align All Existing News With Sector Headings
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4 Customizable Sector Headings & Live RSS Search Queries -->
+                    <div id="kit-sectors-editor" class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2"></div>
+                </div>
+
+                <!-- Bulk Paste & Smart Categorizer inside Kit -->
+                <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-xs font-extrabold text-white uppercase">📋 Bulk News / WhatsApp Text Importer</h3>
+                            <p class="text-[11px] text-slate-400">Paste raw bullets or an old report to auto-classify into your 4 sectors and flag any repeated items in red.</p>
+                        </div>
+                        <button onclick="parseBulkPasteIntoReport()" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-xs rounded-lg">
+                            ⚡ Smart Parse & Add to Sectors
+                        </button>
+                    </div>
+                    <textarea id="bulk-paste-input" rows="5" placeholder="Paste raw news lines or paragraphs here..."
+                        class="w-full p-3 text-xs font-mono bg-slate-950 border border-slate-800 rounded-lg text-slate-200 focus:border-emerald-500 focus:outline-none"></textarea>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- 3. RIGHT SIDEBAR: WHATSAPP REPORT & A4 EXECUTIVE SHEET (MINIMIZED BY DEFAULT) -->
+        <aside id="right-wa-sidebar" class="hidden w-full sm:w-[430px] xl:w-[460px] bg-slate-900 border-l border-slate-800 flex-col h-full shrink-0 z-30 fixed sm:static right-0 top-0 bottom-0 shadow-2xl">
+            <div class="px-3 py-2 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-2 no-print">
+                <div class="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+                    <button id="tab-btn-wa-raw" onclick="switchRightPanelView('raw')" class="px-2.5 py-1 text-[11px] font-bold rounded-md bg-emerald-600 text-slate-950">
+                        WhatsApp *Bold*
+                    </button>
+                    <button id="tab-btn-wa-a4" onclick="switchRightPanelView('a4')" class="px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-400 hover:text-white">
+                        Executive A4 Sheet
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1">
+                    <button onclick="copyWhatsAppText()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-[11px] rounded-lg">
+                        📋 Copy WA
+                    </button>
+                    <button onclick="sendToWhatsAppWeb()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-bold text-[11px] rounded-lg border border-slate-700">
+                        WA Web ↗
+                    </button>
+                    <button onclick="window.print()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] rounded-lg border border-slate-700">
+                        🖨️ PDF
+                    </button>
+                    <button onclick="toggleRightWaSidebar()" class="px-2 py-1 bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white font-bold text-[11px] rounded-lg" title="Minimize WhatsApp Sidebar">
+                        ➖
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel A: Raw WhatsApp Syntax Textarea -->
+            <div id="wa-raw-panel" class="flex-1 flex flex-col p-3 overflow-hidden no-print">
+                <textarea id="wa-output-textarea" spellcheck="false"
+                    class="w-full flex-1 p-3 rounded-xl bg-slate-950 text-emerald-100 font-mono text-xs leading-relaxed border border-slate-800 focus:outline-none resize-none overflow-y-auto"></textarea>
+            </div>
+
+            <!-- Panel B: Executive A4 Sheet (with Official ISPR Header Banner & Red Duplicate Highlight) -->
+            <div id="wa-a4-panel" class="hidden flex-1 overflow-y-auto p-4 bg-slate-200 text-slate-900">
+                <div id="a4-paper-sheet" class="bg-white rounded-xl shadow-lg border border-slate-300 p-6 max-w-2xl mx-auto space-y-4"></div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- APPLICATION LOGIC: UNLIMITED LIVE RSS HARVESTER + ISPR MULTI-SECTOR ENGINE-->
+    <!-- ========================================================================= -->
+    <script>
+        const STORAGE_KEY = 'ispr_daily_intel_state_v2';
+
+        let SECTIONS = [
+            {
+                id: '1',
+                title: 'Bangladesh Internal Security & Diplomacy',
+                query: 'Bangladesh security OR Dhaka OR ISPR OR BGB OR BAPEX OR Chattogram OR Bay of Bengal OR Rohingya'
+            },
+            {
+                id: '2',
+                title: 'India Internal Security & Politics',
+                query: 'India security OR Manipur OR BSF OR Indian Navy OR Tripura OR New Delhi OR Assam OR Kashmir'
+            },
+            {
+                id: '3',
+                title: 'Middle East Conflict & Escalation',
+                query: 'Middle East Iran OR Strait of Hormuz OR Qatar Doha OR Gaza Israel OR Red Sea Yemen OR Lebanon OR Syria'
+            },
+            {
+                id: '4',
+                title: 'Global Conflict, Security & Diplomacy',
+                query: 'Russia Ukraine NATO OR Myanmar Rakhine OR South China Sea OR UN Security Council OR Indo-Pacific'
+            }
+        ];
+
+        // Expanded 36+ Authentic Electronic & Print Media Channels for Unlimited Live Harvesting
+        const AUTHENTIC_MEDIA_CHANNELS = [
+            // Bangladesh National Print & Electronic Media
+            { cat: '1', source: 'The Daily Star', url: 'https://www.thedailystar.net/frontpage/rss.xml' },
+            { cat: '1', source: 'Prothom Alo', url: 'https://www.prothomalo.com/feed/' },
+            { cat: '1', source: 'New Age Bangladesh', url: 'https://www.newagebd.net/rss/rss.xml' },
+            { cat: '1', source: 'The Business Standard (BD)', url: 'https://www.tbsnews.net/rss.xml' },
+            { cat: '1', source: 'Dhaka Tribune / BD Wire', url: 'https://news.google.com/rss/search?q=site:dhakatribune.com+OR+site:bssnews.net+OR+site:bdnews24.com&hl=en-BD&gl=BD&ceid=BD:en' },
+            { cat: '1', source: 'Financial Express BD', url: 'https://news.google.com/rss/search?q=site:thefinancialexpress.com.bd+OR+site:dailynewnation.com+OR+site:daily-sun.com&hl=en-BD&gl=BD&ceid=BD:en' },
+            { cat: '1', source: 'Bangladesh Defense & ISPR Wire', url: 'https://news.google.com/rss/search?q=Bangladesh+Armed+Forces+OR+ISPR+OR+Bangladesh+Army+OR+Bangladesh+Navy+OR+Bangladesh+Air+Force+OR+BGB+OR+Coast+Guard&hl=en-BD&gl=BD&ceid=BD:en' },
+            { cat: '1', source: 'Bangladesh Internal Security & Diplomacy', url: 'https://news.google.com/rss/search?q=Bangladesh+diplomacy+OR+Dhaka+security+OR+Chattogram+Port+OR+BAPEX+OR+Rohingya+Coxs+Bazar&hl=en-BD&gl=BD&ceid=BD:en' },
+
+            // India & South Asia Print & Electronic Media
+            { cat: '2', source: 'The Hindu National', url: 'https://www.thehindu.com/news/national/feeder/default.rss' },
+            { cat: '2', source: 'The Hindu International', url: 'https://www.thehindu.com/news/international/feeder/default.rss' },
+            { cat: '2', source: 'The Indian Express', url: 'https://indianexpress.com/section/india/feed/' },
+            { cat: '2', source: 'NDTV Top Stories', url: 'https://feeds.feedburner.com/ndtvnews-top-stories' },
+            { cat: '2', source: 'Times of India', url: 'https://timesofindia.indiatimes.com/rssfeedstopstories.cms' },
+            { cat: '2', source: 'Hindustan Times / PTI Wire', url: 'https://news.google.com/rss/search?q=site:hindustantimes.com+OR+site:theprint.in+OR+site:scroll.in+India+security&hl=en-IN&gl=IN&ceid=IN:en' },
+            { cat: '2', source: 'India Northeast & Border Wire', url: 'https://news.google.com/rss/search?q=Manipur+OR+Tripura+BSF+OR+Assam+Rifles+OR+Nagaland+OR+Mizoram+OR+Arunachal+security&hl=en-IN&gl=IN&ceid=IN:en' },
+            { cat: '2', source: 'India Defense & Naval Wire', url: 'https://news.google.com/rss/search?q=Indian+Navy+OR+Indian+Army+OR+Indian+Air+Force+OR+DRDO+OR+Ministry+of+Defence+India&hl=en-IN&gl=IN&ceid=IN:en' },
+
+            // Middle East & Gulf Electronic & Print Media
+            { cat: '3', source: 'Al Jazeera English', url: 'https://www.aljazeera.com/xml/rss/all.xml' },
+            { cat: '3', source: 'Middle East Eye', url: 'https://www.middleeasteye.net/rss' },
+            { cat: '3', source: 'The Jerusalem Post', url: 'https://www.jpost.com/rss/rssfeedsfrontpage.aspx' },
+            { cat: '3', source: 'Times of Israel', url: 'https://www.timesofisrael.com/feed/' },
+            { cat: '3', source: 'Arab News / Gulf Times Wire', url: 'https://news.google.com/rss/search?q=site:arabnews.com+OR+site:gulfnews.com+OR+site:khaleejtimes.com+OR+site:peninsulaqatar.com&hl=en-US&gl=US&ceid=US:en' },
+            { cat: '3', source: 'Tehran / Hormuz / Red Sea Wire', url: 'https://news.google.com/rss/search?q=Iran+nuclear+OR+Strait+of+Hormuz+OR+IRGC+OR+Houthi+Red+Sea+OR+Qatar+mediation&hl=en-US&gl=US&ceid=US:en' },
+            { cat: '3', source: 'Levant & Gulf Security Wire', url: 'https://news.google.com/rss/search?q=Gaza+ceasefire+OR+Lebanon+Hezbollah+OR+Syria+security+OR+Iraq+Baghdad+OR+Saudi+diplomacy&hl=en-US&gl=US&ceid=US:en' },
+
+            // Global Conflict, Defense & International Print/Electronic Media
+            { cat: '4', source: 'BBC World News', url: 'https://feeds.bbci.co.uk/news/world/rss.xml' },
+            { cat: '4', source: 'BBC Asia News', url: 'https://feeds.bbci.co.uk/news/world/asia/rss.xml' },
+            { cat: '4', source: 'The Guardian World', url: 'https://www.theguardian.com/world/rss' },
+            { cat: '4', source: 'Deutsche Welle (DW)', url: 'https://rss.dw.com/rdf/rss-en-all' },
+            { cat: '4', source: 'France 24 International', url: 'https://www.france24.com/en/rss' },
+            { cat: '4', source: 'UN News Global', url: 'https://news.un.org/feed/subscribe/en/news/all/rss.xml' },
+            { cat: '4', source: 'South China Morning Post', url: 'https://www.scmp.com/rss/91/feed' },
+            { cat: '4', source: 'The Diplomat (Asia-Pacific)', url: 'https://thediplomat.com/feed/' },
+            { cat: '4', source: 'Defense One / Breaking Defense', url: 'https://news.google.com/rss/search?q=site:defenseone.com+OR+site:breakingdefense.com+OR+site:defensenews.com+OR+site:janes.com&hl=en-US&gl=US&ceid=US:en' },
+            { cat: '4', source: 'Reuters / AP Global Wire', url: 'https://news.google.com/rss/search?q=site:reuters.com+OR+site:apnews.com+military+OR+security+OR+diplomacy&hl=en-US&gl=US&ceid=US:en' },
+            { cat: '4', source: 'Myanmar & Rakhine Conflict Wire', url: 'https://news.google.com/rss/search?q=Myanmar+Rakhine+OR+Arakan+Army+OR+Myanmar+border+OR+Irrawaddy+news&hl=en-US&gl=US&ceid=US:en' },
+            { cat: '4', source: 'Pakistan Dawn / Geo / Express Tribune', url: 'https://news.google.com/rss/search?q=site:dawn.com+OR+site:tribune.com.pk+OR+site:geo.tv+Pakistan+security+OR+diplomacy&hl=en-PK&gl=PK&ceid=PK:en' },
+            { cat: '4', source: 'Europe & NATO Frontline Wire', url: 'https://news.google.com/rss/search?q=Russia+Ukraine+war+OR+NATO+defense+OR+Baltic+security+OR+Black+Sea&hl=en-US&gl=US&ceid=US:en' }
+        ];
+
+        let appState = {
+            date: new Date().toISOString().slice(0, 10),
+            subjectPrefix: "Today's Important International News-",
+            salutation: "", // Blank by default
+            signoff: "",    // Blank by default
+            detailMode: "detailed",
+            autoSortAZ: true,
+            activeTab: 'builder',
+            activeLiveSectorFilter: 'all',
+            liveTimeWindow: 'all',
+            liveDisplayLimit: 180,
+            streamIntervalMs: 1000,
+            sections: { '1': [], '2': [], '3': [], '4': [] }, // Starts EMPTY until user clicks + Add
+            liveFeeds: [], // UNLIMITED array — never capped
+            notifLog: [],
+            searchResults: [],
+            isDirty: false
+        };
+
+        let streamTimerId = null;
+        let RotatingChannelCursor = 0;
+
+        // Ensure every sector in SECTIONS has a valid array in appState.sections
+        function ensureSectorBuckets() {
+            const validIds = new Set();
+            SECTIONS.forEach((sec, index) => {
+                const newId = String(index + 1);
+                sec.id = newId;
+                validIds.add(newId);
+                if (!Array.isArray(appState.sections[newId])) {
+                    appState.sections[newId] = [];
+                }
+            });
+            Object.keys(appState.sections).forEach(k => {
+                if (!validIds.has(k)) delete appState.sections[k];
+            });
+        }
+
+        // =========================================================================
+        // CORE FORMATTING & ACTUAL PUBLISH DATE HELPERS
+        // =========================================================================
+        function toAlphaIndex(idx) {
+            let s = '';
+            let n = idx;
+            while (n >= 0) {
+                s = String.fromCharCode((n % 26) + 97) + s;
+                n = Math.floor(n / 26) - 1;
+            }
+            return s;
+        }
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function formatHumanDate(iso) {
+            if (!iso) return '';
+            const p = iso.split('-');
+            if (p.length !== 3) return iso;
+            const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+            return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        }
+
+        // Preserves the exact, unmodified publish date string from the news channel
+        function extractActualPublishDate(rawPubDateStr) {
+            if (!rawPubDateStr) return { text: 'Live Dispatch', ms: Date.now() };
+            const cleaned = String(rawPubDateStr).trim();
+            const parsed = new Date(cleaned);
+            if (!isNaN(parsed.getTime())) {
+                return {
+                    text: cleaned, // Exact original published timestamp string from the feed
+                    ms: parsed.getTime()
+                };
+            }
+            return { text: cleaned, ms: Date.now() };
+        }
+
+        function notify(msg, type = 'success') {
+            const box = document.getElementById('toast-box');
+            if (!box) return;
+            const el = document.createElement('div');
+            const color = type === 'error' ? 'bg-rose-700 border-rose-400' :
+                          type === 'info' ? 'bg-blue-700 border-blue-400' :
+                          'bg-emerald-700 border-emerald-400';
+            el.className = `${color} text-white text-xs font-bold px-3.5 py-2 rounded-xl border shadow-xl pointer-events-auto transition-all`;
+            el.textContent = msg;
+            box.appendChild(el);
+            setTimeout(() => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 260);
+            }, 3000);
+        }
+
+        function markDirty() {
+            appState.isDirty = true;
+            const ind = document.getElementById('dirty-indicator');
+            if (ind) ind.classList.remove('hidden');
+        }
+
+        function getNewsSourceLink(title, providedUrl) {
+            if (providedUrl && /^https?:\/\//i.test(providedUrl) && !providedUrl.includes('example.com')) {
+                return providedUrl;
+            }
+            return `https://news.google.com/search?q=${encodeURIComponent(title || 'International Security News')}`;
+        }
+
+        // Dynamic Sector Classifier — automatically matches existing and newly added custom sectors
+        function classifySector(text) {
+            const t = (text || '').toLowerCase();
+
+            // 1. Check custom or modified sectors first using their title + query keywords
+            let bestSectorId = null;
+            let bestScore = 0;
+
+            SECTIONS.forEach(sec => {
+                const rawKeywords = `${sec.title} ${sec.query || ''}`
+                    .toLowerCase()
+                    .replace(/\bor\b/g, ' ')
+                    .replace(/[^a-z0-9\s-]/g, ' ')
+                    .split(/\s+/)
+                    .filter(w => w.length >= 3 && !['and','the','for','with','news','internal','security','politics','conflict','escalation','global','diplomacy'].includes(w));
+
+                let score = 0;
+                rawKeywords.forEach(kw => {
+                    if (t.includes(kw)) score += 2;
+                });
+
+                // Also check exact title words
+                sec.title.toLowerCase().split(/\s+/).filter(w => w.length >= 4).forEach(tw => {
+                    if (t.includes(tw)) score += 3;
+                });
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestSectorId = sec.id;
+                }
+            });
+
+            if (bestSectorId && bestScore >= 2) return bestSectorId;
+
+            // 2. Fallback heuristic mapped to current SECTIONS
+            if (/\b(bangladesh|dhaka|chattogram|noakhali|gazipur|ispr|bgb|bapex|petrobangla|rohingya|padma|jamuna|sylhet|khulna|bay of bengal)\b/.test(t) && SECTIONS[0]) return SECTIONS[0].id;
+            if (/\b(india|new delhi|manipur|kuki|naga|tripura|bsf|assam|indian navy|indian army|crpf|kashmir|ladakh|arunachal)\b/.test(t) && SECTIONS[1]) return SECTIONS[1].id;
+            if (/\b(iran|tehran|israel|mossad|idf|gaza|hamas|hezbollah|lebanon|qatar|doha|hormuz|houthi|yemen|saudi|oman|kuwait|red sea|syria|iraq)\b/.test(t) && SECTIONS[2]) return SECTIONS[2].id;
+
+            return SECTIONS[SECTIONS.length - 1]?.id || '1';
+        }
+
+        // Rebuild dynamic RSS channels so every existing and newly created sector gets multi-source coverage
+        function getAllActiveMediaChannels() {
+            const dynamicSectorChannels = [];
+            SECTIONS.forEach(sec => {
+                const q = (sec.query || sec.title).trim();
+                dynamicSectorChannels.push({
+                    cat: sec.id,
+                    source: `Global Wire (${sec.title})`,
+                    url: `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`
+                });
+                dynamicSectorChannels.push({
+                    cat: sec.id,
+                    source: `Regional Media (${sec.title})`,
+                    url: `https://news.google.com/rss/search?q=${encodeURIComponent(sec.title)}&hl=en-BD&gl=BD&ceid=BD:en`
+                });
+            });
+
+            // Re-map base authentic channels if sectors were reordered or deleted
+            const mappedBase = AUTHENTIC_MEDIA_CHANNELS.map(ch => {
+                const exists = SECTIONS.some(s => s.id === ch.cat);
+                return {
+                    ...ch,
+                    cat: exists ? ch.cat : classifySector(ch.source + ' ' + ch.url)
+                };
+            });
+
+            return [...dynamicSectorChannels, ...mappedBase];
+        }
+
+        // Re-classify all uploaded live feeds whenever sectors are added, renamed, or deleted
+        function reclassifyAllLiveFeedsBySectors() {
+            const validIds = new Set(SECTIONS.map(s => s.id));
+            appState.liveFeeds.forEach(item => {
+                const bestCat = classifySector(`${item.title} ${item.summary} ${item.source}`);
+                if (!validIds.has(String(item.cat)) || bestCat) {
+                    item.cat = bestCat;
+                }
+            });
+        }
+
+        // =========================================================================
+        // DUPLICATE / REPETITION DETECTOR (HIGHLIGHTS REPEATED NEWS IN RED)
+        // =========================================================================
+        function normalizeFingerprint(str) {
+            return String(str || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .split(/\s+/)
+                .filter(w => w.length > 3 && !['this','that','with','from','have','were','been','after','over','into'].includes(w));
+        }
+
+        function areNewsItemsSimilar(itemA, itemB) {
+            const titleA = (itemA.title || '').toLowerCase().trim();
+            const titleB = (itemB.title || '').toLowerCase().trim();
+            if (titleA && titleB && titleA === titleB) return true;
+
+            const wordsA = normalizeFingerprint((itemA.title || '') + ' ' + (itemA.summary || '').slice(0, 120));
+            const wordsB = normalizeFingerprint((itemB.title || '') + ' ' + (itemB.summary || '').slice(0, 120));
+            if (wordsA.length < 3 || wordsB.length < 3) return false;
+
+            const setB = new Set(wordsB);
+            let overlap = 0;
+            wordsA.forEach(w => { if (setB.has(w)) overlap++; });
+            const ratio = overlap / Math.min(wordsA.length, wordsB.length);
+            return ratio >= 0.62;
+        }
+
+        function scanReportDuplicates() {
+            const flat = [];
+            SECTIONS.forEach(sec => {
+                (appState.sections[sec.id] || []).forEach((item, idx) => {
+                    flat.push({ secId: sec.id, idx, item });
+                });
+            });
+
+            const duplicateMap = {};
+            let duplicateCount = 0;
+
+            for (let i = 0; i < flat.length; i++) {
+                for (let j = 0; j < i; j++) {
+                    if (areNewsItemsSimilar(flat[i].item, flat[j].item)) {
+                        const keyCurrent = `${flat[i].secId}-${flat[i].idx}`;
+                        const keyFirst = `${flat[j].secId}-${flat[j].idx}`;
+                        duplicateMap[keyCurrent] = `Repeated with Sec ${flat[j].secId} (${toAlphaIndex(flat[j].idx)})`;
+                        duplicateMap[keyFirst] = `Repeated in Sec ${flat[i].secId} (${toAlphaIndex(flat[i].idx)})`;
+                        duplicateCount++;
+                        break;
+                    }
+                }
+            }
+
+            const purgeBtn = document.getElementById('btn-purge-duplicates');
+            if (purgeBtn) {
+                purgeBtn.classList.toggle('hidden', duplicateCount === 0);
+            }
+
+            return { duplicateMap, duplicateCount };
+        }
+
+        function purgeDuplicateNews() {
+            let removed = 0;
+            const kept = [];
+            SECTIONS.forEach(sec => {
+                const filtered = [];
+                (appState.sections[sec.id] || []).forEach(item => {
+                    const isDup = kept.some(existing => areNewsItemsSimilar(existing, item));
+                    if (isDup) {
+                        removed++;
+                    } else {
+                        kept.push(item);
+                        filtered.push(item);
+                    }
+                });
+                appState.sections[sec.id] = filtered;
+            });
+            markDirty();
+            renderBuilderSections();
+            notify(`Purged ${removed} repeated news item(s) from the report!`, 'info');
+        }
+
+        // =========================================================================
+        // HEADLINE & SECTOR-HEADING DRIVEN SEARCH + DETAILING
+        // =========================================================================
+        function synthesizeDetailsForHeadlineAndSector(headline, currentSummary, secId) {
+            const secObj = SECTIONS.find(s => s.id === String(secId)) || SECTIONS[0];
+            const cleanHead = (headline || 'Operational Update').replace(/^\*+|\*+$/g, '').trim();
+            let base = (currentSummary || '').trim();
+
+            const matchLive = appState.liveFeeds.find(f =>
+                f.title.toLowerCase().includes(cleanHead.toLowerCase()) ||
+                cleanHead.toLowerCase().includes(f.title.toLowerCase())
+            );
+
+            if (matchLive && (!base || base.length < 60)) {
+                base = matchLive.summary;
+            }
+
+            if (!base) {
+                base = `${cleanHead} reported across official monitoring channels under ${secObj.title}.`;
+            }
+            if (!/[.!?]$/.test(base)) base += '.';
+
+            if (appState.detailMode === 'concise') {
+                return base.split(/(?<=[.!?])\s+/)[0] || base;
+            }
+
+            if (!base.toLowerCase().includes(secObj.title.toLowerCase().slice(0, 12))) {
+                base += ` Operational assessment aligned under ${secObj.title} indicates continued diplomatic and security monitoring surrounding ${cleanHead}.`;
+            }
+            return base;
+        }
+
+        // =========================================================================
+        // UNLIMITED LIVE ELECTRONIC & PRINT MEDIA HARVESTER (NO MODIFICATION, ACTUAL PUB DATE)
+        // =========================================================================
+        function buildInitial24HourSeedPool() {
+            const seedItems = [
+                { cat: '1', source: 'The Daily Star', title: 'BAPEX accelerates gas appraisal drilling in Noakhali block', summary: 'Bangladesh Petroleum Exploration and Production Company Limited (BAPEX) teams advanced high-pressure wellhead testing in Noakhali to supply additional gas to the national grid.', pubDate: 'Mon, 09 Nov 2026 08:15:00 GMT' },
+                { cat: '1', source: 'Prothom Alo', title: 'BGB and Industrial Police maintain patrol along Gazipur highway corridor', summary: 'Border Guard Bangladesh platoons and Industrial Police units patrolled key export corridors in Gazipur as tripartite discussions with garment industry representatives continued.', pubDate: 'Mon, 09 Nov 2026 07:40:00 GMT' },
+                { cat: '1', source: 'The Business Standard', title: 'Chattogram Port activates automated container radiation scanners', summary: 'Chattogram Port Authority and NBR customs teams commissioned drive-through container scanning systems at New Mooring Container Terminal to speed up export clearances.', pubDate: 'Mon, 09 Nov 2026 06:20:00 GMT' },
+                { cat: '2', source: 'The Hindu', title: 'BSF steps up drone surveillance along Tripura border sectors', summary: 'Border Security Force Eastern Command deployed night-vision surveillance drones and additional patrols across Sepahijala and Dhalai sectors in Tripura.', pubDate: 'Mon, 09 Nov 2026 07:55:00 GMT' },
+                { cat: '2', source: 'NDTV', title: 'Security convoys escort supply trucks along Manipur National Highway-2', summary: 'Central Reserve Police Force and Assam Rifles units escorted essential goods convoys along National Highway-2 amid heightened buffer-zone security in Manipur.', pubDate: 'Mon, 09 Nov 2026 05:50:00 GMT' },
+                { cat: '3', source: 'Al Jazeera English', title: 'Qatari and Omani mediators hold consultations on Hormuz maritime safety', summary: 'Diplomatic envoys in Doha and Muscat continued discussions on commercial shipping safety and de-escalation frameworks across the Strait of Hormuz.', pubDate: 'Mon, 09 Nov 2026 08:30:00 GMT' },
+                { cat: '3', source: 'Reuters Middle East', title: 'Gulf maritime taskforce monitors LNG carrier transit lanes', summary: 'Regional naval operations centers increased aerial and surface monitoring along commercial LNG transit corridors in the Arabian Gulf and Red Sea.', pubDate: 'Mon, 09 Nov 2026 04:45:00 GMT' },
+                { cat: '4', source: 'BBC World News', title: 'NATO allies expand counter-drone radar network along Baltic frontier', summary: 'Defense ministries in Latvia, Lithuania, and Poland accelerated deployment of acoustic and radar counter-drone systems along the eastern border.', pubDate: 'Mon, 09 Nov 2026 08:10:00 GMT' },
+                { cat: '4', source: 'Associated Press', title: 'Humanitarian agencies call for civilian protection in Myanmar Rakhine State', summary: 'International humanitarian groups urged cross-border relief access and de-escalation amid ongoing clashes and airstrikes in Rakhine State.', pubDate: 'Mon, 09 Nov 2026 03:30:00 GMT' }
+            ];
+
+            return seedItems.map((it, idx) => {
+                const pubInfo = extractActualPublishDate(it.pubDate);
+                return {
+                    id: 'seed-' + idx + '-' + pubInfo.ms,
+                    cat: it.cat,
+                    title: it.title, // Unmodified headline
+                    summary: it.summary, // Unmodified summary
+                    url: getNewsSourceLink(it.title),
+                    source: it.source,
+                    timestampMs: pubInfo.ms,
+                    pubDate: pubInfo.text, // Actual published date string
+                    isRealtime: false
+                };
+            });
+        }
+
+        async function fetchSingleAuthenticRss(ch) {
+            // 1. Try rss2json first — preserve exact title, description, link, source, and actual pubDate
+            try {
+                const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(ch.url)}&_t=${Date.now()}`;
+                const res = await fetch(url, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'ok' && Array.isArray(data.items)) {
+                        return data.items.map(item => {
+                            const rawTitle = (item.title || '').trim();
+                            const rawDesc = (item.description || item.content || '')
+                                .replace(/<[^>]+>/g, ' ')
+                                .replace(/&nbsp;/gi, ' ')
+                                .replace(/&amp;/gi, '&')
+                                .replace(/&quot;/gi, '"')
+                                .replace(/&#39;/gi, "'")
+                                .replace(/\s+/g, ' ')
+                                .trim();
+
+                            const pubInfo = extractActualPublishDate(item.pubDate);
+
+                            let channelName = ch.source;
+                            let cleanHeadline = rawTitle;
+                            const splitParts = rawTitle.split(/\s+[-–—|]\s+/);
+                            if (splitParts.length > 1 && splitParts[splitParts.length - 1].length < 40) {
+                                channelName = splitParts[splitParts.length - 1].trim();
+                                cleanHeadline = splitParts.slice(0, -1).join(' - ').trim();
+                            }
+
+                            const secId = classifySector(cleanHeadline + ' ' + rawDesc) || ch.cat || '1';
+
+                            return {
+                                id: 'rss-' + Math.random().toString(36).slice(2, 11),
+                                cat: secId,
+                                title: cleanHeadline || rawTitle,
+                                summary: rawDesc || cleanHeadline || rawTitle,
+                                url: getNewsSourceLink(cleanHeadline, item.link),
+                                source: channelName,
+                                timestampMs: pubInfo.ms,
+                                pubDate: pubInfo.text,
+                                isRealtime: true
+                            };
+                        });
+                    }
+                }
+            } catch (e) {}
+
+            // 2. Fallback to AllOrigins XML Parser
+            try {
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(ch.url)}&_t=${Date.now()}`;
+                const res = await fetch(proxyUrl, { cache: 'no-store' });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.contents) {
+                        const xml = new DOMParser().parseFromString(data.contents, 'text/xml');
+                        const nodes = Array.from(xml.querySelectorAll('item'));
+                        return nodes.map(node => {
+                            const rawTitle = (node.querySelector('title')?.textContent || '').trim();
+                            const rawDesc = (node.querySelector('description')?.textContent || '')
+                                .replace(/<[^>]+>/g, ' ')
+                                .replace(/\s+/g, ' ')
+                                .trim();
+                            const rawLink = (node.querySelector('link')?.textContent || '').trim();
+                            const rawPub = (node.querySelector('pubDate')?.textContent || node.querySelector('dc\\:date')?.textContent || '').trim();
+                            const rawSourceTag = (node.querySelector('source')?.textContent || '').trim();
+
+                            const pubInfo = extractActualPublishDate(rawPub);
+                            let channelName = rawSourceTag || ch.source;
+                            let cleanHeadline = rawTitle;
+                            const splitParts = rawTitle.split(/\s+[-–—|]\s+/);
+                            if (splitParts.length > 1 && splitParts[splitParts.length - 1].length < 40) {
+                                channelName = rawSourceTag || splitParts[splitParts.length - 1].trim();
+                                cleanHeadline = splitParts.slice(0, -1).join(' - ').trim();
+                            }
+
+                            const secId = classifySector(cleanHeadline + ' ' + rawDesc) || ch.cat || '1';
+
+                            return {
+                                id: 'xml-' + Math.random().toString(36).slice(2, 11),
+                                cat: secId,
+                                title: cleanHeadline || rawTitle,
+                                summary: rawDesc || cleanHeadline || rawTitle,
+                                url: getNewsSourceLink(cleanHeadline, rawLink),
+                                source: channelName,
+                                timestampMs: pubInfo.ms,
+                                pubDate: pubInfo.text,
+                                isRealtime: true
+                            };
+                        });
+                    }
+                }
+            } catch (e) {}
+
+            return [];
+        }
+
+        function appendUniqueLiveFeeds(newItems) {
+            if (!Array.isArray(newItems) || newItems.length === 0) return 0;
+            const existingTitles = new Set(appState.liveFeeds.map(f => (f.title || '').toLowerCase().trim()));
+            let addedCount = 0;
+
+            for (let i = newItems.length - 1; i >= 0; i--) {
+                const it = newItems[i];
+                const key = (it.title || '').toLowerCase().trim();
+                if (key && !existingTitles.has(key)) {
+                    existingTitles.add(key);
+                    appState.liveFeeds.unshift(it);
+                    addedCount++;
+                }
+            }
+
+            appState.liveFeeds.sort((a, b) => (b.timestampMs || 0) - (a.timestampMs || 0));
+            return addedCount;
+        }
+
+        async function syncUnlimitedLiveFeeds(showNotification = false) {
+            if (appState.liveFeeds.length === 0) {
+                appState.liveFeeds = buildInitial24HourSeedPool();
+                reclassifyAllLiveFeedsBySectors();
+                updateLiveCountersUI();
+                renderLiveFeeds(false);
+            }
+
+            const allChannels = getAllActiveMediaChannels();
+            let newlyAdded = 0;
+
+            try {
+                // Fetch in parallel batches so all 36+ sources + custom sector feeds load smoothly
+                const batchSize = 10;
+                for (let i = 0; i < allChannels.length; i += batchSize) {
+                    const batch = allChannels.slice(i, i + batchSize);
+                    const liveArrays = await Promise.all(batch.map(ch => fetchSingleAuthenticRss(ch)));
+                    const flatLive = liveArrays.flat();
+                    newlyAdded += appendUniqueLiveFeeds(flatLive);
+                    updateLiveCountersUI();
+                    if (i === 0) {
+                        updateContinuousTickerDOM();
+                        if (appState.activeTab === 'live') renderLiveFeeds(false);
+                    }
+                }
+            } catch (e) {}
+
+            reclassifyAllLiveFeedsBySectors();
+            updateLiveCountersUI();
+            updateContinuousTickerDOM();
+            renderLiveFeeds(false);
+
+            if (showNotification) {
+                notify(`Uploaded ${newlyAdded} new dispatches across ${SECTIONS.length} sectors (Total Uploaded: ${appState.liveFeeds.length.toLocaleString()})`, 'success');
+            }
+        }
+
+        function updateLiveCountersUI() {
+            const total = appState.liveFeeds.length;
+            const pill = document.getElementById('live-feed-counter-pill');
+            if (pill) pill.textContent = `Total Uploaded: ${total.toLocaleString()}`;
+            const labelEl = document.getElementById('live-feed-count-label');
+            if (labelEl) labelEl.textContent = `Total Uploaded: ${total.toLocaleString()}`;
+        }
+
+        // =========================================================================
+        // 24/7 CONTINUOUS ULTRA-SLOW TICKER & SECOND-BY-SECOND STREAM
+        // =========================================================================
+        function updateContinuousTickerDOM() {
+            const track = document.getElementById('topbar-popup-content');
+            if (!track) return;
+
+            const sample = appState.liveFeeds.slice(0, 40);
+            if (sample.length === 0) return;
+
+            const buildPass = () => sample.map((item, idx) => {
+                const rtBadge = item.isRealtime
+                    ? `<span class="px-1.5 py-0.2 rounded bg-emerald-500 text-slate-950 font-mono font-extrabold text-[9px] mr-1.5">⚡ REAL-TIME</span>`
+                    : `<span class="px-1.5 py-0.2 rounded bg-slate-800 text-amber-300 font-mono font-bold text-[9px] mr-1.5">ARCHIVE</span>`;
+                return `<span class="inline-flex items-center mx-6 cursor-pointer hover:underline" onclick="focusTickerItem(${idx})">
+                    ${rtBadge}
+                    <span class="text-white font-semibold mr-2">${escapeHtml(item.title)}:</span>
+                    <span class="text-emerald-100 mr-2">${escapeHtml(item.summary)}</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-700 text-amber-300 font-mono text-[10px] font-bold">🔗 Source: ${escapeHtml(item.source)} • 🕒 Pub: ${escapeHtml(item.pubDate)}</span>
+                </span>`;
+            }).join('<span class="text-emerald-500/50 font-mono mx-2">•••</span>');
+
+            const passHtml = buildPass();
+            track.innerHTML = `<span>${passHtml}</span><span class="text-emerald-500/50 font-mono mx-6">•••</span><span>${passHtml}</span>`;
+
+            const topItem = sample[0];
+            const linkEl = document.getElementById('topbar-popup-link');
+            if (linkEl && topItem) {
+                linkEl.href = getNewsSourceLink(topItem.title, topItem.url);
+                linkEl.textContent = `🔗 ${topItem.source} • 🕒 ${topItem.pubDate} ↗`;
+            }
+        }
+
+        function focusTickerItem(idx) {
+            const item = appState.liveFeeds[idx];
+            if (!item) return;
+            switchMainTab('live');
+            const filterInp = document.getElementById('live-local-filter');
+            if (filterInp) {
+                filterInp.value = item.title.slice(0, 30);
+                renderLiveFeeds(true);
+            }
+        }
+
+        function changeTickerSpeed(val) {
+            const track = document.getElementById('topbar-popup-content');
+            if (!track) return;
+            if (val === 'paused') {
+                track.style.animationPlayState = 'paused';
+            } else {
+                track.style.animationPlayState = 'running';
+                track.style.setProperty('--ticker-duration', val);
+            }
+        }
+
+        function startSecondBySecondStream() {
+            if (streamTimerId) clearInterval(streamTimerId);
+            streamTimerId = setInterval(async () => {
+                const now = new Date();
+                const clockStr = now.toLocaleTimeString('en-US', { hour12: false });
+                const badge = document.getElementById('live-clock-badge');
+                if (badge) badge.textContent = `⚡ LIVE ${clockStr}`;
+                const sideClock = document.getElementById('sidebar-clock');
+                if (sideClock) sideClock.textContent = clockStr;
+                if (now.getSeconds() % 6 === 0) {
+                    const allActive = getAllActiveMediaChannels();
+                    const ch = allActive[RotatingChannelCursor % allActive.length];
+                    RotatingChannelCursor++;
+                    const freshItems = await fetchSingleAuthenticRss(ch);
+                    const added = appendUniqueLiveFeeds(freshItems);
+
+                    if (added > 0 && freshItems[0]) {
+                        const newest = freshItems[0];
+                        appState.notifLog.unshift(newest);
+                        const linkEl = document.getElementById('topbar-popup-link');
+                        if (linkEl) {
+                            linkEl.href = getNewsSourceLink(newest.title, newest.url);
+                            linkEl.textContent = `🔗 ${newest.source} • 🕒 ${newest.pubDate} ↗`;
+                        }
+                    }
+
+                    updateLiveCountersUI();
+                    const activeTag = document.activeElement?.tagName;
+                    if (appState.activeTab === 'live' && activeTag !== 'INPUT' && activeTag !== 'TEXTAREA') {
+                        renderLiveFeeds(false);
+                    }
+                }
+            }, appState.streamIntervalMs || 1000);
+        }
+
+        function changeStreamInterval(ms) {
+            appState.streamIntervalMs = Number(ms) || 1000;
+            startSecondBySecondStream();
+            notify(`Live stream interval set to ${ms == 1000 ? 'Every 1 Second' : (ms / 1000) + 's'}`, 'info');
+        }
+
+        function toggleNotifDrawer() {
+            const drawer = document.getElementById('notif-history-drawer');
+            if (!drawer) return;
+            drawer.classList.toggle('hidden');
+            if (!drawer.classList.contains('hidden')) {
+                const listEl = document.getElementById('notif-history-list');
+                const items = appState.notifLog.length > 0 ? appState.notifLog : appState.liveFeeds.slice(0, 25);
+                listEl.innerHTML = items.map(it => `
+                    <div class="p-2 rounded-lg bg-slate-950 border border-slate-800 flex items-start justify-between gap-2">
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-white">${escapeHtml(it.title)}</div>
+                            <div class="text-[11px] text-slate-400">${escapeHtml(it.summary)}</div>
+                            <div class="text-[10px] font-mono text-amber-300">
+                                🔗 Source: ${escapeHtml(it.source)} • 🕒 Pub: ${escapeHtml(it.pubDate)}
+                            </div>
+                        </div>
+                        <button onclick="addFeedItemToReport('${it.id}')" class="px-2 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-[10px] shrink-0">
+                            + Add
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // =========================================================================
+        // RENDER UNLIMITED LIVE FEEDS (CLEAN LABELS, ACTUAL PUB DATE, TOTAL COUNTER)
+        // =========================================================================
+        function renderLiveSectorFilterBar() {
+            const bar = document.getElementById('live-sector-filter-bar');
+            if (!bar) return;
+            const allBtnClass = appState.activeLiveSectorFilter === 'all'
+                ? 'bg-emerald-500 text-slate-950 font-extrabold'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold';
+
+            let html = `<button onclick="setLiveSectorFilter('all')" class="px-2.5 py-1 text-xs rounded-lg transition ${allBtnClass}">All Sectors</button>`;
+            SECTIONS.forEach(sec => {
+                const active = appState.activeLiveSectorFilter === sec.id;
+                const cls = active
+                    ? 'bg-emerald-500 text-slate-950 font-extrabold'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold';
+                html += `<button onclick="setLiveSectorFilter('${sec.id}')" class="px-2.5 py-1 text-xs rounded-lg transition ${cls}">Sec ${sec.id}: ${escapeHtml(sec.title.split(' ').slice(0, 3).join(' '))}</button>`;
+            });
+            bar.innerHTML = html;
+        }
+
+        function setLiveSectorFilter(secId) {
+            appState.activeLiveSectorFilter = secId;
+            appState.liveDisplayLimit = 150;
+            renderLiveSectorFilterBar();
+            renderLiveFeeds(true);
+        }
+
+        function changeLiveTimeWindow(win) {
+            appState.liveTimeWindow = win;
+            appState.liveDisplayLimit = 180;
+            renderLiveFeeds(true);
+        }
+
+        function buildSingleLiveFeedCardHtml(item) {
+            const secObj = SECTIONS.find(s => s.id === String(item.cat)) || SECTIONS[0];
+            const inReport = (appState.sections[secObj.id] || []).some(r => areNewsItemsSimilar(r, item));
+            const sourceUrl = getNewsSourceLink(item.title, item.url);
+            const pubDateStr = item.pubDate || 'Live Dispatch';
+
+            return `
+            <div class="p-3.5 bg-slate-900 rounded-xl border ${item.isRealtime ? 'border-emerald-500/40' : 'border-slate-800'} hover:border-slate-700 transition flex flex-col sm:flex-row items-start justify-between gap-3">
+                <div class="flex-1 min-w-0 space-y-1.5 w-full">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            ${item.isRealtime
+                                ? `<span class="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-mono font-extrabold text-[9px]">⚡ REAL-TIME</span>`
+                                : `<span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono font-bold text-[9px]">ARCHIVE</span>`
+                            }
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                                Sec ${secObj.id}: ${escapeHtml(secObj.title)}
+                            </span>
+                        </div>
+
+                        <!-- RIGHT SIDE: NEWS CHANNEL BESIDE SOURCE + ACTUAL PUBLISHED DATE -->
+                        <div class="flex items-center gap-2 ml-auto">
+                            <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer"
+                                class="px-2.5 py-0.5 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-700 text-[10px] font-mono font-bold flex items-center gap-1.5 text-blue-300 hover:underline">
+                                <span>🔗 Source: <strong class="text-amber-300">${escapeHtml(item.source)}</strong></span>
+                                <span class="text-slate-500">|</span>
+                                <span class="text-emerald-300">🕒 Pub: ${escapeHtml(pubDateStr)}</span>
+                                <span>↗</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="text-xs font-extrabold text-white">${escapeHtml(item.title)}</div>
+                    <p class="text-xs text-slate-300 leading-relaxed">${escapeHtml(item.summary)}</p>
+                </div>
+
+                <div class="flex sm:flex-col items-center gap-1.5 shrink-0 self-end sm:self-center">
+                    <select onchange="reassignFeedSectorAndAdd('${item.id}', this.value)" class="px-2 py-1 text-[10px] bg-slate-950 border border-slate-700 rounded text-slate-300" title="Choose target sector">
+                        ${SECTIONS.map(s => `<option value="${s.id}" ${s.id === secObj.id ? 'selected' : ''}>Sec ${s.id}: ${escapeHtml(s.title.slice(0, 18))}</option>`).join('')}
+                    </select>
+                    <button onclick="addFeedItemToReport('${item.id}')"
+                        class="px-3 py-1.5 rounded-lg font-extrabold text-xs transition ${inReport ? 'bg-slate-800 text-emerald-400 border border-emerald-500/40' : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950'}">
+                        ${inReport ? '✓ In Report' : `+ Add to Sec ${secObj.id}`}
+                    </button>
+                </div>
+            </div>`;
+        }
+
+        function reassignFeedSectorAndAdd(feedId, newSecId) {
+            const item = appState.liveFeeds.find(f => f.id === feedId);
+            if (!item) return;
+            item.cat = String(newSecId);
+            renderLiveFeeds(false);
+        }
+
+        function renderLiveFeeds(resetScroll = false) {
+            const listEl = document.getElementById('live-feed-list');
+            const labelEl = document.getElementById('live-feed-count-label');
+            if (!listEl) return;
+
+            renderLiveSectorFilterBar();
+
+            const query = (document.getElementById('live-local-filter')?.value || '').toLowerCase().trim();
+            const groupSectorWise = document.getElementById('chk-group-by-sector')?.checked !== false;
+            const now = Date.now();
+
+            const filtered = appState.liveFeeds.filter(item => {
+                if (appState.activeLiveSectorFilter !== 'all' && String(item.cat) !== appState.activeLiveSectorFilter) {
+                    return false;
+                }
+                const ageHours = (now - (item.timestampMs || now)) / (3600 * 1000);
+                if (appState.liveTimeWindow === 'realtime' && !item.isRealtime) return false;
+                if (appState.liveTimeWindow === 'last6h' && ageHours > 6) return false;
+                if (appState.liveTimeWindow === 'prev24h' && item.isRealtime) return false;
+
+                if (query) {
+                    const hay = `${item.title} ${item.summary} ${item.source} ${item.pubDate}`.toLowerCase();
+                    if (!hay.includes(query)) return false;
+                }
+                return true;
+            });
+
+            if (labelEl) {
+                labelEl.textContent = `Total Uploaded: ${appState.liveFeeds.length.toLocaleString()}`;
+            }
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<div class="p-8 text-center text-slate-400 text-xs">No feeds match this filter. Click "🔄 Fetch More Live News" above.</div>`;
+                return;
+            }
+
+            // Sector-Wise Organization in Live Feeds
+            if (groupSectorWise && appState.activeLiveSectorFilter === 'all') {
+                let groupedHtml = '';
+                SECTIONS.forEach(sec => {
+                    const secItems = filtered.filter(f => String(f.cat) === sec.id);
+                    const visibleSecItems = secItems.slice(0, Math.max(25, Math.floor(appState.liveDisplayLimit / SECTIONS.length)));
+
+                    groupedHtml += `
+                    <div class="bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden">
+                        <div class="px-4 py-2 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="w-5 h-5 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-xs font-extrabold flex items-center justify-center">${sec.id}</span>
+                                <h3 class="text-xs font-extrabold text-white">${escapeHtml(sec.title)}</h3>
+                            </div>
+                            <button onclick="setLiveSectorFilter('${sec.id}')" class="text-[11px] font-mono text-emerald-400 hover:underline">
+                                View Sector ${sec.id} Only →
+                            </button>
+                        </div>
+                        <div class="p-2.5 space-y-2">
+                            ${visibleSecItems.length > 0
+                                ? visibleSecItems.map(it => buildSingleLiveFeedCardHtml(it)).join('')
+                                : `<div class="p-4 text-center text-xs text-slate-400">Fetching live dispatches for "${escapeHtml(sec.title)}"...</div>`
+                            }
+                        </div>
+                    </div>`;
+                });
+                listEl.innerHTML = groupedHtml;
+            } else {
+                const slice = filtered.slice(0, appState.liveDisplayLimit);
+                let cardsHtml = slice.map(item => buildSingleLiveFeedCardHtml(item)).join('');
+
+                if (filtered.length > appState.liveDisplayLimit) {
+                    cardsHtml += `
+                    <div class="pt-2 pb-4 text-center">
+                        <button onclick="loadMoreLiveFeeds()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-300 font-extrabold text-xs rounded-xl border border-emerald-500/40">
+                            ⬇️ Show More Uploaded News
+                        </button>
+                    </div>`;
+                }
+                listEl.innerHTML = cardsHtml;
+            }
+
+            if (resetScroll) listEl.scrollTop = 0;
+        }
+
+        function loadMoreLiveFeeds() {
+            appState.liveDisplayLimit += 200;
+            renderLiveFeeds(false);
+        }
+
+        function addFeedItemToReport(feedId) {
+            const item = appState.liveFeeds.find(f => f.id === feedId);
+            if (!item) return;
+            const secId = String(item.cat || '1');
+            appState.sections[secId].push({
+                title: item.title,
+                summary: item.summary,
+                url: item.url,
+                source: item.source,
+                pubDate: item.pubDate
+            });
+            markDirty();
+            renderBuilderSections();
+            renderLiveFeeds(false);
+            notify(`Added "${item.title}" to Section ${secId}`, 'success');
+        }
+
+        // =========================================================================
+        // DYNAMIC MULTI-SECTOR BUILDER (ADD / DELETE / CUSTOMIZE ANY SECTOR)
+        // =========================================================================
+        function addNewSectorDynamic(customTitle = '', customQuery = '') {
+            const nextNum = SECTIONS.length + 1;
+            const title = (customTitle || `New Security & Intelligence Sector ${nextNum}`).trim();
+            const query = (customQuery || title).trim();
+            const newId = String(nextNum);
+
+            SECTIONS.push({ id: newId, title, query });
+            ensureSectorBuckets();
+            reclassifyAllLiveFeedsBySectors();
+            markDirty();
+
+            renderKitSectorsEditor();
+            renderBuilderSections();
+            renderLiveSectorFilterBar();
+
+            // Immediately fetch live news specifically for the newly created sector
+            fetchSingleAuthenticRss({
+                cat: newId,
+                source: `Live Wire (${title})`,
+                url: `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`
+            }).then(items => {
+                appendUniqueLiveFeeds(items);
+                updateLiveCountersUI();
+                updateContinuousTickerDOM();
+                if (appState.activeTab === 'live') renderLiveFeeds(false);
+            });
+
+            notify(`Added Sector ${newId}: "${title}" & started harvesting live news for it!`, 'success');
+        }
+
+        function promptAddNewSector() {
+            switchMainTab('kit');
+            const inp = document.getElementById('new-sector-title-inp');
+            if (inp) {
+                inp.focus();
+                inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            notify('Enter your new Main Sector Heading title below and click "+ Create Sector"', 'info');
+        }
+
+        function addNewSectorFromKit() {
+            const titleInp = document.getElementById('new-sector-title-inp');
+            const queryInp = document.getElementById('new-sector-query-inp');
+            if (titleInp && titleInp.value.trim()) {
+                createNewSectorFromInputs();
+            } else {
+                addNewSectorDynamic(`Custom Intelligence Sector ${SECTIONS.length + 1}`, '');
+            }
+        }
+
+        function createNewSectorFromInputs() {
+            const titleInp = document.getElementById('new-sector-title-inp');
+            const queryInp = document.getElementById('new-sector-query-inp');
+            const title = (titleInp?.value || '').trim();
+            const query = (queryInp?.value || title).trim();
+            if (!title) {
+                notify('Please type a heading name for the new sector first.', 'info');
+                return;
+            }
+            addNewSectorDynamic(title, query);
+            if (titleInp) titleInp.value = '';
+            if (queryInp) queryInp.value = '';
+        }
+
+        function deleteSectorHeading(secId) {
+            if (SECTIONS.length <= 1) {
+                notify('At least 1 sector heading must remain in the report.', 'error');
+                return;
+            }
+            const targetIdx = SECTIONS.findIndex(s => s.id === String(secId));
+            if (targetIdx === -1) return;
+            const removedTitle = SECTIONS[targetIdx].title;
+
+            // Rebuild ordered sections and shift items cleanly so no remaining sector loses its items
+            const newSectionsMeta = [];
+            const newSectionsBuckets = {};
+
+            SECTIONS.forEach((sec) => {
+                if (sec.id !== String(secId)) {
+                    const nextId = String(newSectionsMeta.length + 1);
+                    newSectionsMeta.push({
+                        id: nextId,
+                        title: sec.title,
+                        query: sec.query
+                    });
+                    newSectionsBuckets[nextId] = appState.sections[sec.id] || [];
+                }
+            });
+
+            SECTIONS = newSectionsMeta;
+            appState.sections = newSectionsBuckets;
+            if (appState.activeLiveSectorFilter === String(secId)) {
+                appState.activeLiveSectorFilter = 'all';
+            }
+
+            reclassifyAllLiveFeedsBySectors();
+            markDirty();
+            renderKitSectorsEditor();
+            renderBuilderSections();
+            renderLiveFeeds(false);
+            notify(`Deleted sector "${removedTitle}" and re-indexed remaining sectors!`, 'info');
+        }
+
+        function renderSidebarSectorsNav() {
+            const nav = document.getElementById('sidebar-sectors-nav');
+            if (!nav) return;
+
+            const { duplicateMap } = scanReportDuplicates();
+
+            nav.innerHTML = SECTIONS.map(sec => {
+                const items = appState.sections[sec.id] || [];
+                const hasDup = items.some((_, idx) => duplicateMap[`${sec.id}-${idx}`]);
+                return `
+                <div class="flex items-center gap-1">
+                    <button onclick="jumpToSector('${sec.id}')" class="flex-1 px-2.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border ${hasDup ? 'border-rose-500 text-rose-300' : 'border-slate-800 text-slate-200'} flex items-center justify-between text-left text-xs transition min-w-0">
+                        <span class="truncate font-semibold">${sec.id}. ${escapeHtml(sec.title)}</span>
+                        ${hasDup ? `<span class="px-1.5 py-0.2 text-[10px] font-mono rounded bg-rose-600 text-white shrink-0">DUP</span>` : ''}
+                    </button>
+                    <button onclick="deleteSectorHeading('${sec.id}')" title="Delete Sector ${sec.id}" class="px-2 py-1.5 rounded-lg bg-slate-950 hover:bg-rose-900/80 text-slate-500 hover:text-rose-200 border border-slate-800 text-[10px] font-bold shrink-0">
+                        ✕
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function addSearchResultToReport(idx) {
+            const item = appState.searchResults[idx];
+            if (!item) return;
+            const sel = document.getElementById(`search-sec-select-${idx}`);
+            const secId = sel ? sel.value : String(item.cat || '1');
+            appState.sections[secId].push({
+                title: (item.title || '').replace(/\*/g, ''),
+                summary: (item.summary || '').replace(/\*/g, ''),
+                url: item.url,
+                source: item.source,
+                pubDate: item.pubDate
+            });
+            markDirty();
+            renderBuilderSections();
+            notify(`Added "${item.title}" to Section ${secId}`, 'success');
+        }
+
+        function toggleTopSearchSidebar() {
+            const drawer = document.getElementById('top-search-sidebar');
+            if (drawer) drawer.classList.toggle('hidden');
+        }
+
+        function closeTopSearchSidebar() {
+            const drawer = document.getElementById('top-search-sidebar');
+            if (drawer) drawer.classList.add('hidden');
+        }
+
+        function quickKeywordChip(keyword) {
+            const inp = document.getElementById('global-keyword-input');
+            if (inp) inp.value = keyword;
+            executeGlobalKeywordSearch();
+        }
+
+        async function executeGlobalKeywordSearch() {
+            const inp = document.getElementById('global-keyword-input');
+            const query = (inp?.value || '').trim();
+            if (!query) {
+                notify('Enter a keyword in the search bar first.', 'info');
+                return;
+            }
+
+            const drawer = document.getElementById('top-search-sidebar');
+            const listEl = document.getElementById('top-search-results-list');
+            const statusEl = document.getElementById('top-search-status');
+            const titleEl = document.getElementById('top-search-title');
+
+            if (drawer) drawer.classList.remove('hidden');
+            if (titleEl) titleEl.textContent = `Search Results for "${query}"`;
+            if (statusEl) statusEl.textContent = 'Searching live sources...';
+
+            const qLower = query.toLowerCase();
+            const localMatches = appState.liveFeeds.filter(f =>
+                `${f.title} ${f.summary} ${f.source}`.toLowerCase().includes(qLower)
+            );
+
+            const rssChannel = {
+                cat: classifySector(query),
+                source: `Live Search (${query})`,
+                url: `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`
+            };
+
+            const remoteItems = await fetchSingleAuthenticRss(rssChannel);
+            appendUniqueLiveFeeds(remoteItems);
+            updateLiveCountersUI();
+
+            const combined = [...remoteItems, ...localMatches];
+            const seen = new Set();
+            appState.searchResults = combined.filter(it => {
+                const k = (it.title || '').toLowerCase().trim();
+                if (!k || seen.has(k)) return false;
+                seen.add(k);
+                return true;
+            });
+
+            if (statusEl) statusEl.textContent = `${appState.searchResults.length} results found`;
+
+            if (!listEl) return;
+            if (appState.searchResults.length === 0) {
+                listEl.innerHTML = `<div class="p-4 text-center text-xs text-slate-400">No results found for "${escapeHtml(query)}".</div>`;
+                return;
+            }
+
+            listEl.innerHTML = appState.searchResults.map((item, idx) => {
+                const sourceUrl = getNewsSourceLink(item.title, item.url);
+                const cleanTitle = (item.title || '').replace(/\*/g, '');
+                const cleanSummary = (item.summary || '').replace(/\*/g, '');
+                return `
+                <div class="p-2.5 rounded-lg bg-slate-950/90 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                    <div class="space-y-1 flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <span class="text-xs font-semibold text-white">${escapeHtml(cleanTitle)}</span>
+                            <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer"
+                                class="px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-[10px] font-mono text-blue-300 hover:underline">
+                                🔗 Source: <strong class="text-amber-300">${escapeHtml(item.source)}</strong> | 🕒 Pub: ${escapeHtml(item.pubDate || 'Live')} ↗
+                            </a>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">${escapeHtml(cleanSummary)}</p>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                        <select id="search-sec-select-${idx}" class="px-2 py-1 text-[10px] bg-slate-900 border border-slate-700 rounded text-slate-200">
+                            ${SECTIONS.map(s => `<option value="${s.id}" ${String(item.cat) === s.id ? 'selected' : ''}>Sec ${s.id}: ${escapeHtml(s.title.slice(0, 16))}</option>`).join('')}
+                        </select>
+                        <button onclick="addSearchResultToReport(${idx})" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-extrabold text-[11px]">
+                            + Add
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function jumpToSector(secId) {
+            switchMainTab('builder');
+            const el = document.getElementById(`sector-card-${secId}`);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderBuilderSections() {
+            const container = document.getElementById('builder-sections-container');
+            if (!container) return;
+
+            ensureSectorBuckets();
+
+            if (appState.autoSortAZ) {
+                SECTIONS.forEach(sec => {
+                    (appState.sections[sec.id] || []).sort((a, b) =>
+                        (a.title || '').localeCompare(b.title || '', undefined, { sensitivity: 'base' })
+                    );
+                });
+            }
+
+            const { duplicateMap } = scanReportDuplicates();
+
+            container.innerHTML = SECTIONS.map(sec => {
+                const items = appState.sections[sec.id] || [];
+
+                let rowsHtml = '';
+                if (items.length === 0) {
+                    rowsHtml = `
+                    <div class="p-5 text-center space-y-2 bg-slate-950/60">
+                        <p class="text-xs text-slate-400">Section ${sec.id} is empty (No news is auto-included until you add it).</p>
+                        <div class="flex items-center justify-center gap-2">
+                            <button onclick="addBlankItemToSector('${sec.id}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700">
+                                + Add Blank Item
+                            </button>
+                            <button onclick="addNextQueueItemToSector('${sec.id}')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs font-extrabold">
+                                ➕ Pull Next Item from Live Queue
+                            </button>
+                        </div>
+                    </div>`;
+                } else {
+                    rowsHtml = items.map((item, idx) => {
+                        const letter = toAlphaIndex(idx);
+                        const dupReason = duplicateMap[`${sec.id}-${idx}`];
+                        const sourceUrl = getNewsSourceLink(item.title, item.url);
+                        const channelName = item.source || 'Media Wire';
+                        const pubStr = item.pubDate || formatHumanDate(appState.date);
+
+                        return `
+                        <div class="p-3.5 transition ${dupReason ? 'bg-rose-950/60 border-l-4 border-rose-500' : 'bg-slate-950/40 hover:bg-slate-900/60'} space-y-2">
+                            ${dupReason ? `
+                                <div class="px-2.5 py-1 rounded bg-rose-600 text-white text-[10px] font-mono font-extrabold flex items-center justify-between">
+                                    <span>⚠️ REPEATED NEWS DETECTED: ${escapeHtml(dupReason)}</span>
+                                    <button onclick="removeReportItem('${sec.id}', ${idx})" class="underline font-bold">Remove Duplicate</button>
+                                </div>
+                            ` : ''}
+
+                            <div class="flex items-start gap-2.5">
+                                <span class="font-mono text-xs font-extrabold ${dupReason ? 'text-rose-300' : 'text-emerald-400'} mt-1.5 w-5 shrink-0">${letter}.</span>
+                                <div class="flex-1 space-y-1.5">
+                                    <!-- Headline + Right-Side Source Channel & Actual Published Date -->
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <input type="text" value="${escapeHtml(item.title)}"
+                                            onchange="onHeadlineChanged('${sec.id}', ${idx}, this.value)"
+                                            placeholder="Headline (changing this customizes search & details)..."
+                                            class="flex-1 min-w-[220px] px-2.5 py-1 text-xs font-extrabold bg-slate-900 border ${dupReason ? 'border-rose-500 text-rose-200' : 'border-slate-700 text-white'} rounded-lg focus:border-emerald-500 focus:outline-none" />
+
+                                        <div class="flex items-center gap-1.5">
+                                            <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer"
+                                                class="px-2 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[10px] font-mono font-bold text-blue-300 hover:underline flex items-center gap-1">
+                                                <span>🔗 Source: <strong class="text-amber-300">${escapeHtml(channelName)}</strong></span>
+                                                <span>•</span>
+                                                <span class="text-emerald-300">🕒 Pub: ${escapeHtml(pubStr)}</span>
+                                                <span>↗</span>
+                                            </a>
+                                            <button onclick="autoDetailSingleItem('${sec.id}', ${idx})" class="px-2 py-1 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold" title="Customize search & detail according to headline and sector heading">
+                                                ✨ Auto-Detail
+                                            </button>
+                                            <button onclick="removeReportItem('${sec.id}', ${idx})" class="px-2 py-1 rounded bg-rose-950 hover:bg-rose-800 text-rose-300 text-[10px] font-bold">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Main News Details Textarea -->
+                                    <textarea rows="2" onchange="onSummaryChanged('${sec.id}', ${idx}, this.value)"
+                                        class="w-full p-2 text-xs bg-slate-900/90 border border-slate-800 rounded-lg text-slate-200 focus:border-emerald-500 focus:outline-none leading-relaxed resize-y">${escapeHtml(item.summary)}</textarea>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                return `
+                <div id="sector-card-${sec.id}" class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden shadow-md">
+                    <!-- Customizable Sector Header Bar (With Inline Edit + Delete Sector Button) -->
+                    <div class="px-3.5 py-2.5 bg-slate-950 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-1 min-w-[240px]">
+                            <span class="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono text-xs font-extrabold flex items-center justify-center shrink-0">
+                                ${sec.id}
+                            </span>
+                            <input type="text" value="${escapeHtml(sec.title)}"
+                                onchange="onSectorHeadingChanged('${sec.id}', this.value)"
+                                title="Click to customize Sector ${sec.id} Heading — automatically syncs across all sectors & live feeds"
+                                class="flex-1 px-2 py-1 text-xs font-extrabold text-white bg-slate-900 border border-slate-800 hover:border-slate-600 focus:border-emerald-500 rounded-lg focus:outline-none" />
+                        </div>
+
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <button onclick="addNextQueueItemToSector('${sec.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
+                                ➕ Add Queue News
+                            </button>
+                            <button onclick="addBlankItemToSector('${sec.id}')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] font-bold">
+                                + Manual Item
+                            </button>
+                            <button onclick="deleteSectorHeading('${sec.id}')" title="Delete this entire Sector Heading" class="px-2.5 py-1 rounded-lg bg-rose-950/70 hover:bg-rose-700 text-rose-300 hover:text-white border border-rose-800/60 text-[11px] font-bold">
+                                🗑️ Delete Sector
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="divide-y divide-slate-800/80">
+                        ${rowsHtml}
+                    </div>
+                </div>`;
+            }).join('');
+
+            renderSidebarSectorsNav();
+            syncOutput();
+        }
+
+        function onHeadlineChanged(secId, idx, newHeadline) {
+            const item = appState.sections[secId]?.[idx];
+            if (!item) return;
+            item.title = newHeadline.trim();
+            item.url = getNewsSourceLink(item.title);
+            item.summary = synthesizeDetailsForHeadlineAndSector(item.title, item.summary, secId);
+            markDirty();
+            renderBuilderSections();
+            notify(`Updated headline & customized details for "${item.title}"`, 'success');
+        }
+
+        function onSummaryChanged(secId, idx, newSummary) {
+            const item = appState.sections[secId]?.[idx];
+            if (!item) return;
+            item.summary = newSummary.trim();
+            markDirty();
+            renderBuilderSections();
+        }
+
+        function autoDetailSingleItem(secId, idx) {
+            const item = appState.sections[secId]?.[idx];
+            if (!item) return;
+            item.summary = synthesizeDetailsForHeadlineAndSector(item.title, item.summary, secId);
+            item.url = getNewsSourceLink(item.title, item.url);
+            markDirty();
+            renderBuilderSections();
+            notify(`Auto-detailed "${item.title}" aligned with Sector ${secId}!`, 'success');
+        }
+
+        function removeReportItem(secId, idx) {
+            appState.sections[secId].splice(idx, 1);
+            markDirty();
+            renderBuilderSections();
+        }
+
+        function addBlankItemToSector(secId) {
+            appState.sections[secId].push({
+                title: 'New Sector Update',
+                summary: synthesizeDetailsForHeadlineAndSector('New Sector Update', '', secId),
+                url: getNewsSourceLink('New Sector Update'),
+                source: 'Manual Entry',
+                pubDate: formatHumanDate(appState.date)
+            });
+            markDirty();
+            renderBuilderSections();
+        }
+
+        function addNextQueueItemToSector(secId) {
+            const candidate = appState.liveFeeds.find(f =>
+                String(f.cat) === String(secId) &&
+                !(appState.sections[secId] || []).some(r => areNewsItemsSimilar(r, f))
+            );
+            if (!candidate) {
+                notify(`No more unadded items in Sector ${secId} queue.`, 'info');
+                return;
+            }
+            appState.sections[secId].push({
+                title: candidate.title,
+                summary: candidate.summary,
+                url: candidate.url,
+                source: candidate.source,
+                pubDate: candidate.pubDate
+            });
+            markDirty();
+            renderBuilderSections();
+            notify(`Added "${candidate.title}" (${candidate.source}) to Section ${secId}!`, 'success');
+        }
+
+        function onSectorHeadingChanged(secId, newHeading) {
+            const sec = SECTIONS.find(s => s.id === String(secId));
+            if (!sec || !newHeading.trim()) return;
+            sec.title = newHeading.trim();
+            sec.query = newHeading.trim();
+            reclassifyAllLiveFeedsBySectors();
+            markDirty();
+            renderKitSectorsEditor();
+            renderBuilderSections();
+            renderLiveSectorFilterBar();
+
+            // Pull fresh live news for the updated heading immediately
+            fetchSingleAuthenticRss({
+                cat: sec.id,
+                source: `Live Wire (${sec.title})`,
+                url: `https://news.google.com/rss/search?q=${encodeURIComponent(sec.query)}&hl=en-US&gl=US&ceid=US:en`
+            }).then(items => {
+                appendUniqueLiveFeeds(items);
+                updateLiveCountersUI();
+                updateContinuousTickerDOM();
+                if (appState.activeTab === 'live') renderLiveFeeds(false);
+            });
+
+            notify(`Sector ${secId} heading updated to "${sec.title}" & live feeds re-aligned sector-wise!`, 'success');
+        }
+
+        function renderKitSectorsEditor() {
+            const box = document.getElementById('kit-sectors-editor');
+            if (!box) return;
+            box.innerHTML = SECTIONS.map(sec => `
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-extrabold text-emerald-400">Sector ${sec.id} Configuration</span>
+                        <button onclick="deleteSectorHeading('${sec.id}')" class="px-2 py-0.5 rounded bg-rose-950 hover:bg-rose-700 text-rose-300 hover:text-white text-[10px] font-bold">
+                            🗑️ Delete Heading
+                        </button>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Sector ${sec.id} Main Heading</label>
+                        <input id="kit-sec-title-${sec.id}" type="text" value="${escapeHtml(sec.title)}"
+                            class="w-full px-2.5 py-1.5 text-xs font-bold bg-slate-900 border border-slate-700 rounded-lg text-white" />
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-mono uppercase text-slate-400 mb-1">Live RSS Search Keywords for Sector ${sec.id}</label>
+                        <input id="kit-sec-query-${sec.id}" type="text" value="${escapeHtml(sec.query)}"
+                            class="w-full px-2.5 py-1.5 text-xs font-mono bg-slate-900 border border-slate-700 rounded-lg text-slate-300" />
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function applyKitChangesToAllSectors() {
+            const pref = document.getElementById('kit-subject-prefix')?.value.trim();
+            if (pref) {
+                appState.subjectPrefix = pref;
+                const subjEl = document.getElementById('inp-subject');
+                if (subjEl) subjEl.value = `${appState.subjectPrefix} ${formatHumanDate(appState.date)}`;
+            }
+            const dm = document.getElementById('kit-detail-mode')?.value;
+            if (dm) appState.detailMode = dm;
+
+            SECTIONS.forEach(sec => {
+                const t = document.getElementById(`kit-sec-title-${sec.id}`)?.value.trim();
+                const q = document.getElementById(`kit-sec-query-${sec.id}`)?.value.trim();
+                if (t) sec.title = t;
+                if (q) sec.query = q;
+            });
+
+            reclassifyAllLiveFeedsBySectors();
+            realignAllSectorsDetailsNow();
+            syncUnlimitedLiveFeeds(false);
+            saveAllChangesManual(false);
+            notify(`Master Kit changes applied & synchronized across all ${SECTIONS.length} sectors!`, 'success');
+        }
+
+        function realignAllSectorsDetailsNow() {
+            SECTIONS.forEach(sec => {
+                (appState.sections[sec.id] || []).forEach(item => {
+                    item.summary = synthesizeDetailsForHeadlineAndSector(item.title, item.summary, sec.id);
+                });
+            });
+            markDirty();
+            renderBuilderSections();
+            renderLiveFeeds(false);
+        }
+
+        function resetKitToDefaults() {
+            SECTIONS = [
+                { id: '1', title: 'Bangladesh Internal Security & Diplomacy', query: 'Bangladesh security OR Dhaka OR ISPR OR BGB OR BAPEX OR Chattogram' },
+                { id: '2', title: 'India Internal Security & Politics', query: 'India security OR Manipur OR BSF OR Indian Navy OR Tripura' },
+                { id: '3', title: 'Middle East Conflict & Escalation', query: 'Middle East Iran OR Strait of Hormuz OR Qatar Doha OR Gaza Israel' },
+                { id: '4', title: 'Global Conflict, Security & Diplomacy', query: 'Russia Ukraine NATO OR Myanmar Rakhine OR South China Sea' }
+            ];
+            ensureSectorBuckets();
+            reclassifyAllLiveFeedsBySectors();
+            renderKitSectorsEditor();
+            renderBuilderSections();
+            renderLiveFeeds(false);
+            notify('Reset sectors to default 4-sector configuration.', 'info');
+        }
+
+        function enrichAllReportItems() {
+            appState.detailMode = 'detailed';
+            realignAllSectorsDetailsNow();
+            notify('Expanded all report items with full main news details!', 'success');
+        }
+
+        function clearAllReportSections() {
+            SECTIONS.forEach(sec => {
+                appState.sections[sec.id] = [];
+            });
+            markDirty();
+            renderBuilderSections();
+            notify('Cleared all report sections.', 'info');
+        }
+
+        function parseBulkPasteIntoReport() {
+            const raw = document.getElementById('bulk-paste-input')?.value || '';
+            if (!raw.trim()) {
+                notify('Paste news lines first.', 'info');
+                return;
+            }
+            const lines = raw.split(/\n+/).map(l => l.trim()).filter(l => l.length > 12);
+            let added = 0;
+            lines.forEach(line => {
+                const cleaned = line.replace(/^[a-z]\.\s*/i, '').replace(/^[-•*]\s*/, '');
+                const parts = cleaned.split(':');
+                const title = (parts[0] || 'News Update').replace(/\*/g, '').trim().slice(0, 65);
+                const summary = (parts.slice(1).join(':') || cleaned).trim();
+                const secId = classifySector(title + ' ' + summary);
+                appState.sections[secId].push({
+                    title,
+                    summary,
+                    url: getNewsSourceLink(title),
+                    source: 'Bulk Import',
+                    pubDate: formatHumanDate(appState.date)
+                });
+                added++;
+            });
+            markDirty();
+            renderBuilderSections();
+            switchMainTab('builder');
+            notify(`Imported ${added} items into the 4 sectors!`, 'success');
+        }
+
+        // =========================================================================
+        // WHATSAPP & A4 EXECUTIVE REPORT COMPILER (RIGHT SIDEBAR WITH ISPR CREST)
+        // =========================================================================
+        function syncOutput() {
+            const sal = (document.getElementById('inp-salutation')?.value || '').trim();
+            const subj = (document.getElementById('inp-subject')?.value || `${appState.subjectPrefix} ${formatHumanDate(appState.date)}`).trim();
+            const sign = (document.getElementById('inp-signoff')?.value || '').trim();
+            const includeLinks = document.getElementById('chk-wa-links')?.checked;
+
+            let lines = [];
+            if (sal) {
+                lines.push(sal);
+                lines.push('');
+            }
+            lines.push(`Subj: *${subj.replace(/^\*+|\*+$/g, '')}*`);
+            lines.push('');
+
+            SECTIONS.forEach(sec => {
+                const items = appState.sections[sec.id] || [];
+                lines.push(` ${sec.id}. *${sec.title}*`);
+                lines.push('');
+                if (items.length === 0) {
+                    lines.push(`a. *No Major Developments Included*: Monitoring continues.`);
+                    lines.push('');
+                } else {
+                    items.forEach((item, idx) => {
+                        const letter = toAlphaIndex(idx);
+                        const cleanTitle = (item.title || '').replace(/^\*+|\*+$/g, '').trim();
+                        let cleanSum = (item.summary || '').trim();
+                        if (cleanSum && !/[.!?]$/.test(cleanSum)) cleanSum += '.';
+
+                        let row = `${letter}. *${cleanTitle}*: ${cleanSum}`;
+                        if (includeLinks) {
+                            row += ` [Source: ${item.source || 'News Wire'} | Pub: ${item.pubDate || formatHumanDate(appState.date)} | ${getNewsSourceLink(cleanTitle, item.url)}]`;
+                        }
+                        lines.push(row);
+                        lines.push('');
+                    });
+                }
+            });
+
+            if (sign) {
+                lines.push(sign);
+            }
+
+            const waArea = document.getElementById('wa-output-textarea');
+            if (waArea) waArea.value = lines.join('\n').trim();
+
+            // Render A4 Sheet with Official ISPR Header & Red Duplicate Highlight
+            const paper = document.getElementById('a4-paper-sheet');
+            if (paper) {
+                const { duplicateMap } = scanReportDuplicates();
+                let html = `
+                    <div class="border-b-2 border-slate-900 pb-3 flex items-center justify-between gap-4">
+                        <div>
+                            ${sal ? `<p class="text-xs font-medium text-slate-700 mb-1">${escapeHtml(sal)}</p>` : ''}
+                            <h1 class="text-sm font-extrabold text-slate-900">Subj: <span class="underline">${escapeHtml(subj)}</span></h1>
+                            <p class="text-[10px] font-semibold text-slate-600 mt-0.5">Inter Services Public Relations (ISPR) • আন্তঃবাহিনী জনসংযোগ পরিদপ্তর</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-extrabold text-xs tracking-wider">ISPR</span>
+                        </div>
+                    </div>
+                `;
+                SECTIONS.forEach(sec => {
+                    const items = appState.sections[sec.id] || [];
+                    html += `
+                        <div class="space-y-2">
+                            <h2 class="text-xs font-extrabold text-slate-900 bg-slate-100 px-2.5 py-1 rounded border-l-4 border-slate-900">
+                                ${sec.id}. ${escapeHtml(sec.title)}
+                            </h2>
+                            <div class="space-y-1.5 pl-1">
+                    `;
+                    if (items.length === 0) {
+                        html += `<p class="text-xs italic text-slate-400">No items added to this section.</p>`;
+                    } else {
+                        items.forEach((item, idx) => {
+                            const dup = duplicateMap[`${sec.id}-${idx}`];
+                            const url = getNewsSourceLink(item.title, item.url);
+                            html += `
+                                <div class="text-xs leading-relaxed ${dup ? 'p-2 rounded bg-rose-100 border border-rose-500 text-rose-950 font-semibold' : 'text-slate-800'}">
+                                    <span class="font-mono font-bold">${toAlphaIndex(idx)}.</span>
+                                    <strong>${escapeHtml(item.title)}</strong>: ${escapeHtml(item.summary)}
+                                    <a href="${escapeHtml(url)}" target="_blank" class="ml-1 text-[10px] font-mono text-blue-700 underline">
+                                        [Source: ${escapeHtml(item.source || 'Media Wire')} | Pub: ${escapeHtml(item.pubDate || formatHumanDate(appState.date))} ↗]
+                                    </a>
+                                    ${dup ? `<span class="ml-1 text-[10px] font-mono text-rose-700 font-extrabold">(${escapeHtml(dup)})</span>` : ''}
+                                </div>
+                            `;
+                        });
+                    }
+                    html += `</div></div>`;
+                });
+                if (sign) {
+                    html += `<div class="pt-3 border-t border-slate-300 text-xs font-semibold text-slate-800 whitespace-pre-line">${escapeHtml(sign)}</div>`;
+                }
+                paper.innerHTML = html;
+            }
+        }
+
+        function toggleRightWaSidebar() {
+            const sb = document.getElementById('right-wa-sidebar');
+            if (!sb) return;
+            sb.classList.toggle('hidden');
+            sb.classList.toggle('flex');
+        }
+
+        function switchRightPanelView(mode) {
+            const rawP = document.getElementById('wa-raw-panel');
+            const a4P = document.getElementById('wa-a4-panel');
+            const bRaw = document.getElementById('tab-btn-wa-raw');
+            const bA4 = document.getElementById('tab-btn-wa-a4');
+            if (mode === 'a4') {
+                rawP.classList.add('hidden');
+                a4P.classList.remove('hidden');
+                bA4.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md bg-emerald-600 text-slate-950';
+                bRaw.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-400 hover:text-white';
+            } else {
+                a4P.classList.add('hidden');
+                rawP.classList.remove('hidden');
+                bRaw.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md bg-emerald-600 text-slate-950';
+                bA4.className = 'px-2.5 py-1 text-[11px] font-bold rounded-md text-slate-400 hover:text-white';
+            }
+        }
+
+        function copyWhatsAppText() {
+            syncOutput();
+            const text = document.getElementById('wa-output-textarea')?.value || '';
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            notify('Copied WhatsApp formatted report to clipboard!', 'success');
+        }
+
+        function sendToWhatsAppWeb() {
+            syncOutput();
+            const text = document.getElementById('wa-output-textarea')?.value || '';
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        // =========================================================================
+        // DATE NAVIGATION, TABS & PERSISTENT SAVE
+        // =========================================================================
+        function onDateChange(newIso) {
+            if (!newIso) return;
+            appState.date = newIso;
+            const dateInp = document.getElementById('inp-report-date');
+            if (dateInp) dateInp.value = newIso;
+            const subjInp = document.getElementById('inp-subject');
+            if (subjInp) subjInp.value = `${appState.subjectPrefix} ${formatHumanDate(newIso)}`;
+            syncUnlimitedLiveFeeds(true);
+            syncOutput();
+        }
+
+        function stepDate(delta) {
+            const p = (appState.date || new Date().toISOString().slice(0, 10)).split('-');
+            const d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+            d.setDate(d.getDate() + delta);
+            onDateChange(d.toISOString().slice(0, 10));
+        }
+
+        function setTodayDate() {
+            onDateChange(new Date().toISOString().slice(0, 10));
+        }
+
+        function setYesterdayDate() {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            onDateChange(d.toISOString().slice(0, 10));
+        }
+
+        function toggleAutoSortAZ(val) {
+            appState.autoSortAZ = val;
+            renderBuilderSections();
+        }
+
+        function toggleLeftSidebar() {
+            const sb = document.getElementById('left-sidebar');
+            if (sb) sb.classList.toggle('hidden');
+        }
+
+        function switchMainTab(tab) {
+            appState.activeTab = tab;
+            ['builder', 'live', 'kit'].forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                if (view) view.classList.toggle('hidden', t !== tab);
+                const btn = document.getElementById(`nav-tab-${t}`);
+                if (btn) {
+                    btn.className = t === tab
+                        ? 'w-full px-3 py-2 rounded-lg text-left text-xs font-bold flex items-center justify-between bg-emerald-600 text-slate-950'
+                        : 'w-full px-3 py-2 rounded-lg text-left text-xs font-semibold flex items-center justify-between text-slate-300 hover:bg-slate-800';
+                }
+            });
+            if (tab === 'live') renderLiveFeeds(false);
+            if (tab === 'kit') renderKitSectorsEditor();
+        }
+
+        function saveAllChangesManual(showToastMsg = true) {
+            try {
+                const payload = {
+                    SECTIONS,
+                    subjectPrefix: appState.subjectPrefix,
+                    salutation: document.getElementById('inp-salutation')?.value || '',
+                    signoff: document.getElementById('inp-signoff')?.value || '',
+                    sections: appState.sections,
+                    detailMode: appState.detailMode
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+                appState.isDirty = false;
+                const ind = document.getElementById('dirty-indicator');
+                if (ind) ind.classList.add('hidden');
+                if (showToastMsg) notify('Saved all changes & 4-sector kit settings!', 'success');
+            } catch (e) {}
+        }
+
+        function loadSavedState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (Array.isArray(data.SECTIONS) && data.SECTIONS.length >= 1) {
+                    SECTIONS = data.SECTIONS;
+                }
+                if (data.subjectPrefix) appState.subjectPrefix = data.subjectPrefix;
+                if (typeof data.salutation === 'string') appState.salutation = data.salutation;
+                if (typeof data.signoff === 'string') appState.signoff = data.signoff;
+                if (data.sections) appState.sections = data.sections;
+                ensureSectorBuckets();
+            } catch (e) {}
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                saveAllChangesManual(true);
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedState();
+
+            const todayIso = new Date().toISOString().slice(0, 10);
+            appState.date = todayIso;
+            const dateInp = document.getElementById('inp-report-date');
+            if (dateInp) dateInp.value = todayIso;
+
+            const salInp = document.getElementById('inp-salutation');
+            if (salInp) salInp.value = appState.salutation || '';
+
+            const signInp = document.getElementById('inp-signoff');
+            if (signInp) signInp.value = appState.signoff || '';
+
+            const subjInp = document.getElementById('inp-subject');
+            if (subjInp) subjInp.value = `${appState.subjectPrefix} ${formatHumanDate(todayIso)}`;
+
+            renderKitSectorsEditor();
+            renderBuilderSections();
+
+            // Immediately start unlimited live RSS harvesting with actual published dates
+            syncUnlimitedLiveFeeds(false);
+            startSecondBySecondStream();
+        });
+    </script>
+</body>
+</html>
